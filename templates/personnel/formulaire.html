@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% block title %}{{ titre }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-1">{{ titre }}</h4>
+    <p class="text-muted mb-0" style="font-size:14px;">يرجى ملء جميع الحقول الإلزامية</p>
+  </div>
+  <a href="{% url 'liste_personnes' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-right me-1"></i> العودة للقائمة
+  </a>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+
+  <!-- Section 1: Catégorie et identité -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="bi bi-person-badge-fill text-primary"></i>
+      الفئة والمعلومات الشخصية
+    </div>
+    <div class="row g-3">
+      <div class="col-md-12">
+        <label class="form-label fw-bold">الفئة <span class="text-danger">*</span></label>
+        {{ form.categorie }}
+        {% if form.categorie.errors %}<div class="text-danger" style="font-size:12px;">{{ form.categorie.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">اللقب <span class="text-danger">*</span></label>
+        {{ form.nom }}
+        {% if form.nom.errors %}<div class="text-danger" style="font-size:12px;">{{ form.nom.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">الاسم <span class="text-danger">*</span></label>
+        {{ form.prenom }}
+        {% if form.prenom.errors %}<div class="text-danger" style="font-size:12px;">{{ form.prenom.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-bold">الجنس <span class="text-danger">*</span></label>
+        {{ form.sexe }}
+        {% if form.sexe.errors %}<div class="text-danger" style="font-size:12px;">{{ form.sexe.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-bold">تاريخ الميلاد <span class="text-danger">*</span></label>
+        {{ form.date_naissance }}
+        {% if form.date_naissance.errors %}<div class="text-danger" style="font-size:12px;">{{ form.date_naissance.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-bold">مكان الميلاد <span class="text-danger">*</span></label>
+        {{ form.lieu_naissance }}
+        {% if form.lieu_naissance.errors %}<div class="text-danger" style="font-size:12px;">{{ form.lieu_naissance.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: NIN -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="bi bi-fingerprint text-danger"></i>
+      رقم التعريف الوطني
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-bold">رقم التعريف الوطني (NIN) <span class="text-danger">*</span></label>
+        {{ form.nin }}
+        <div class="form-text">مثال: 1 99012 19 000 00 00</div>
+        {% if form.nin.errors %}<div class="text-danger" style="font-size:12px;">{{ form.nin.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">الصورة الشخصية</label>
+        {{ form.photo }}
+        {% if form.photo.errors %}<div class="text-danger" style="font-size:12px;">{{ form.photo.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3 d-flex align-items-center">
+        <div class="form-check mt-3">
+          {{ form.actif }}
+          <label class="form-check-label fw-bold ms-2">نشط</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Contact -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="bi bi-telephone-fill text-success"></i>
+      معلومات الاتصال
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label fw-bold">رقم الهاتف <span class="text-danger">*</span></label>
+        {{ form.telephone }}
+        {% if form.telephone.errors %}<div class="text-danger" style="font-size:12px;">{{ form.telephone.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">رقم هاتف ثانوي</label>
+        {{ form.telephone2 }}
+        {% if form.telephone.errors %}<div class="text-danger" style="font-size:12px;">{{ form.telephone2.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">فاكس</label>
+        {{ form.fax }}
+        {% if form.telephone.errors %}<div class="text-danger" style="font-size:12px;">{{ form.fax.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label fw-bold">البريد الإلكتروني</label>
+        {{ form.email }}
+        {% if form.email.errors %}<div class="text-danger" style="font-size:12px;">{{ form.email.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Adresse -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="bi bi-geo-alt-fill text-warning"></i>
+      العنوان
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-bold">العنوان الكامل <span class="text-danger">*</span></label>
+        {{ form.adresse }}
+        {% if form.adresse.errors %}<div class="text-danger" style="font-size:12px;">{{ form.adresse.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">البلدية <span class="text-danger">*</span></label>
+        {{ form.commune }}
+        {% if form.commune.errors %}<div class="text-danger" style="font-size:12px;">{{ form.commune.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">الولاية <span class="text-danger">*</span></label>
+        {{ form.wilaya }}
+        {% if form.wilaya.errors %}<div class="text-danger" style="font-size:12px;">{{ form.wilaya.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5: Compte bancaire -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="bi bi-bank2 text-info"></i>
+      الحساب المالي
+    </div>
+    <div class="row g-3">
+      <div class="col-md-5">
+        <label class="form-label fw-bold">رقم الحساب البنكي (RIB / CCP)</label>
+        {{ form.rib }}
+        {% if form.rib.errors %}<div class="text-danger" style="font-size:12px;">{{ form.rib.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">اسم البنك / CCP</label>
+        {{ form.banque }}
+        {% if form.banque.errors %}<div class="text-danger" style="font-size:12px;">{{ form.banque.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 6: Poste et période -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="bi bi-briefcase-fill text-secondary"></i>
+      المنصب وفترة العمل
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label fw-bold">المنصب <span class="text-danger">*</span></label>
+        {{ form.poste }}
+        {% if form.poste.errors %}<div class="text-danger" style="font-size:12px;">{{ form.poste.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">تاريخ بداية العمل <span class="text-danger">*</span></label>
+        {{ form.date_debut }}
+        {% if form.date_debut.errors %}<div class="text-danger" style="font-size:12px;">{{ form.date_debut.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">تاريخ نهاية العمل</label>
+        {{ form.date_fin }}
+        {% if form.date_fin.errors %}<div class="text-danger" style="font-size:12px;">{{ form.date_fin.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="col-md-12">
+        <label class="form-label fw-bold">المهمة / الوصف</label>
+        {{ form.mission }}
+        {% if form.mission.errors %}<div class="text-danger" style="font-size:12px;">{{ form.mission.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 7: Rôle système -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="bi bi-shield-lock-fill text-purple" style="color:#6c3483;"></i>
+      صلاحية النظام
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label fw-bold">الدور في النظام <span class="text-danger">*</span></label>
+        {{ form.role_systeme }}
+        <div class="form-text">مدير النظام: كل الصلاحيات — محرر: إضافة/تعديل — قارئ: عرض فقط</div>
+        {% if form.role_systeme.errors %}<div class="text-danger" style="font-size:12px;">{{ form.role_systeme.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="d-flex gap-3 mt-2">
+    <button type="submit" class="btn btn-primary px-5">
+      <i class="bi bi-check-lg me-1"></i>
+      {% if mode == 'add' %}حفظ البيانات{% else %}حفظ التعديلات{% endif %}
+    </button>
+    <a href="{% url 'liste_personnes' %}" class="btn btn-outline-secondary px-4">
+      <i class="bi bi-x-lg me-1"></i> إلغاء
+    </a>
+  </div>
+</form>
+{% endblock %}

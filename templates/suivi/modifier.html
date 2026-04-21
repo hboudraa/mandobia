@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}تعديل بلدية {{ commune.get_commune_display }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">تعديل: {{ commune.get_commune_display }}</h4>
+  <a href="{% url 'suivi:tableau_bord' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-right me-1"></i> العودة
+  </a>
+</div>
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="form-section">
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-bold">البلدية</label>
+            {{ form.commune }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">الحالة</label>
+            {{ form.statut }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">مسند إلى</label>
+            {{ form.attribue_a }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">تاريخ الاتصال</label>
+            {{ form.date_contact }}
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-bold">الملاحظة</label>
+            {{ form.remarque }}
+          </div>
+        </div>
+        <div class="d-flex gap-3 mt-4">
+          <button type="submit" class="btn btn-primary px-5">
+            <i class="bi bi-check-lg me-1"></i>حفظ
+          </button>
+          <a href="{% url 'suivi:tableau_bord' %}" class="btn btn-outline-secondary">إلغاء</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

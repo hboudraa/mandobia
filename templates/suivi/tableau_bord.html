@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+{% block title %}متابعة بلديات بجاية{% endblock %}
+
+{% block extra_head %}
+<style>
+.commune-card {
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.commune-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); border-color: #b0c4de; }
+.commune-card.statut-termine    { border-right: 4px solid #198754; }
+.commune-card.statut-en_cours   { border-right: 4px solid #ffc107; }
+.commune-card.statut-contacte   { border-right: 4px solid #0dcaf0; }
+.commune-card.statut-probleme   { border-right: 4px solid #dc3545; }
+.commune-card.statut-en_attente { border-right: 4px solid #adb5bd; }
+.commune-code { font-size: 11px; color: #adb5bd; font-weight: 700; }
+.commune-nom  { font-size: 15px; font-weight: 700; color: #1a3a5c; }
+.commune-meta { font-size: 11px; color: #6c757d; margin-top: 4px; }
+.assigned-badge {
+  background: #e8f0fe; color: #1a5276;
+  border-radius: 20px; font-size: 11px;
+  padding: 2px 10px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.stat-pill {
+  border-radius: 20px; padding: 6px 14px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; border: 2px solid transparent;
+  transition: all 0.15s; text-decoration: none;
+}
+.stat-pill.active { border-color: currentColor; }
+.inline-statut select {
+  border: none; background: transparent;
+  font-size: 12px; padding: 2px 6px; cursor: pointer;
+  color: inherit; font-weight: 600; border-radius: 6px;
+}
+.inline-statut select:focus { outline: none; box-shadow: none; }
+.claim-btn { font-size: 11px; padding: 2px 8px; border-radius: 12px; }
+.saving-spinner { display: none; }
+.commune-card.saving .saving-spinner { display: inline-block; }
+.remarque-text {
+  font-size: 12px; color: #495057;
+  background: #f8f9fa; border-radius: 6px;
+  padding: 6px 10px; margin-top: 6px;
+  white-space: pre-wrap; display: none;
+}
+.commune-card.open .remarque-text { display: block; }
+.edit-zone { display: none; margin-top: 8px; }
+.commune-card.editing .edit-zone { display: block; }
+.commune-card.editing .view-zone { display: none; }
+.search-box { max-width: 220px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="fw-bold mb-1">متابعة بلديات ولاية بجاية</h4>
+    <p class="text-muted mb-0" style="font-size:13px;">
+      {{ stats.total }} بلدية — تحديث تلقائي كل 30 ثانية
+    </p>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    <span class="badge bg-primary px-3 py-2" style="font-size:13px;">
+      <i class="bi bi-person-fill me-1"></i>{{ request.user.username }}
+    </span>
+    <a href="{% url 'suivi:exporter_excel' %}?statut={{ filtre_statut }}&user={{ filtre_user }}"
+       class="btn btn-success">
+      <i class="bi bi-file-earmark-excel-fill me-1"></i> تصدير Excel
+    </a>
+  </div>
+</div>
+
+<!-- Stats + filtres -->
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <a href="?{% if filtre_user %}user={{ filtre_user }}{% endif %}"
+         class="stat-pill text-secondary bg-light {% if not filtre_statut %}active{% endif %}">
+        الكل <span class="badge bg-secondary ms-1">{{ stats.total }}</span>
+      </a>
+      <a href="?statut=en_attente{% if filtre_user %}&user={{ filtre_user }}{% endif %}"
+         class="stat-pill text-secondary bg-light {% if filtre_statut == 'en_attente' %}active{% endif %}">
+        <i class="bi bi-hourglass me-1"></i>في الانتظار
+        <span class="badge bg-secondary ms-1">{{ stats.en_attente }}</span>
+      </a>
+      <a href="?statut=contacte{% if filtre_user %}&user={{ filtre_user }}{% endif %}"
+         class="stat-pill text-info bg-light {% if filtre_statut == 'contacte' %}active{% endif %}">
+        <i class="bi bi-telephone-fill me-1"></i>تم الاتصال
+        <span class="badge bg-info ms-1">{{ stats.contacte }}</span>
+      </a>
+      <a href="?statut=en_cours{% if filtre_user %}&user={{ filtre_user }}{% endif %}"
+         class="stat-pill text-warning bg-light {% if filtre_statut == 'en_cours' %}active{% endif %}">
+        <i class="bi bi-arrow-repeat me-1"></i>جارٍ العمل
+        <span class="badge bg-warning ms-1">{{ stats.en_cours }}</span>
+      </a>
+      <a href="?statut=termine{% if filtre_user %}&user={{ filtre_user }}{% endif %}"
+         class="stat-pill text-success bg-light {% if filtre_statut == 'termine' %}active{% endif %}">
+        <i class="bi bi-check-circle-fill me-1"></i>تمت العملية
+        <span class="badge bg-success ms-1">{{ stats.termine }}</span>
+      </a>
+      <a href="?statut=probleme{% if filtre_user %}&user={{ filtre_user }}{% endif %}"
+         class="stat-pill text-danger bg-light {% if filtre_statut == 'probleme' %}active{% endif %}">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>مشكل
+        <span class="badge bg-danger ms-1">{{ stats.probleme }}</span>
+      </a>
+
+      <div class="me-auto"></div>
+
+      <!-- Search -->
+      <form method="get" class="d-flex gap-2">
+        {% if filtre_statut %}<input type="hidden" name="statut" value="{{ filtre_statut }}">{% endif %}
+        {% if filtre_user %}<input type="hidden" name="user" value="{{ filtre_user }}">{% endif %}
+        <input type="text" name="q" class="form-control form-control-sm search-box"
+               placeholder="ابحث باسم البلدية..." value="{{ filtre_search }}">
+        <button type="submit" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-search"></i>
+        </button>
+      </form>
+
+      <!-- Filter by user -->
+      <a href="?{% if filtre_statut %}statut={{ filtre_statut }}&{% endif %}user=moi"
+         class="stat-pill {% if filtre_user == 'moi' %}active text-primary{% else %}text-secondary{% endif %} bg-light">
+        <i class="bi bi-person-fill me-1"></i>بلدياتي
+      </a>
+      <a href="?{% if filtre_statut %}statut={{ filtre_statut }}&{% endif %}user=non_assigne"
+         class="stat-pill {% if filtre_user == 'non_assigne' %}active text-warning{% else %}text-secondary{% endif %} bg-light">
+        <i class="bi bi-person-dash me-1"></i>غير مسندة
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Progress bar -->
+{% if stats.total %}
+<div class="mb-4">
+  <div class="d-flex justify-content-between mb-1" style="font-size:12px; color:#6c757d;">
+    <span>نسبة الإنجاز الإجمالية</span>
+    <span>{{ stats.termine }} / {{ stats.total }} بلدية منجزة</span>
+  </div>
+  <div class="progress" style="height:12px; border-radius:10px;">
+    <div class="progress-bar bg-success"
+         style="width:{% widthratio stats.termine stats.total 100 %}%"
+         title="تمت العملية"></div>
+    <div class="progress-bar bg-warning"
+         style="width:{% widthratio stats.en_cours stats.total 100 %}%"
+         title="جارٍ العمل"></div>
+    <div class="progress-bar bg-info"
+         style="width:{% widthratio stats.contacte stats.total 100 %}%"
+         title="تم الاتصال"></div>
+    <div class="progress-bar bg-danger"
+         style="width:{% widthratio stats.probleme stats.total 100 %}%"
+         title="مشكل"></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Grid des communes -->
+<div class="row g-3">
+  {% for c in communes %}
+  <div class="col-xl-3 col-lg-4 col-md-6">
+    <div class="commune-card statut-{{ c.statut }}" id="card-{{ c.pk }}" data-pk="{{ c.pk }}">
+
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="commune-code">{{ c.commune }}</div>
+          <div class="commune-nom">{{ c.get_commune_display }}</div>
+        </div>
+        <div class="d-flex gap-1 align-items-center">
+          <span class="spinner-border spinner-border-sm text-primary saving-spinner" role="status"></span>
+          <button class="btn btn-sm btn-outline-secondary py-0 px-2 toggle-edit-btn" title="تعديل">
+            <i class="bi bi-pencil" style="font-size:11px;"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- View zone -->
+      <div class="view-zone mt-2">
+        <div class="inline-statut">
+          <select class="statut-select badge bg-{{ c.statut_color }} border-0 text-white"
+                  data-pk="{{ c.pk }}">
+            {% for val, label in statuts %}
+            <option value="{{ val }}" {% if c.statut == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="commune-meta mt-1 d-flex align-items-center gap-2 flex-wrap">
+          {% if c.attribue_a %}
+            <span class="assigned-badge">
+              <i class="bi bi-person-fill" style="font-size:10px;"></i>
+              {{ c.attribue_a.username }}
+            </span>
+            {% if c.attribue_a == request.user or request.user.is_superuser %}
+            <button class="btn btn-outline-secondary claim-btn release-btn" data-pk="{{ c.pk }}">
+              تحرير
+            </button>
+            {% endif %}
+          {% else %}
+            <button class="btn btn-outline-primary claim-btn claim-btn-action" data-pk="{{ c.pk }}">
+              <i class="bi bi-person-plus me-1"></i>أسند لي
+            </button>
+          {% endif %}
+        </div>
+
+        {% if c.remarque %}
+        <button class="btn btn-link p-0 mt-1 toggle-remarque" style="font-size:11px; color:#6c757d;">
+          <i class="bi bi-chat-left-text me-1"></i>عرض الملاحظة
+        </button>
+        <div class="remarque-text">{{ c.remarque }}</div>
+        {% endif %}
+
+        {% if c.modifie_par %}
+        <div class="commune-meta mt-1">
+          <i class="bi bi-clock" style="font-size:10px;"></i>
+          {{ c.modifie_par.username }} — {{ c.modifie_le|date:"d/m H:i" }}
+        </div>
+        {% endif %}
+        {% if c.date_contact %}
+        <div class="commune-meta">
+          <i class="bi bi-calendar3" style="font-size:10px;"></i>
+          تاريخ الاتصال: {{ c.date_contact|date:"d/m/Y" }}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Edit zone -->
+      <div class="edit-zone">
+        <div class="mb-2">
+          <label style="font-size:11px; font-weight:600; color:#6c757d;">الملاحظة</label>
+          <textarea class="form-control form-control-sm remarque-input" rows="3"
+                    placeholder="أضف ملاحظة...">{{ c.remarque }}</textarea>
+        </div>
+        <div class="mb-2">
+          <label style="font-size:11px; font-weight:600; color:#6c757d;">تاريخ الاتصال</label>
+          <input type="date" class="form-control form-control-sm date-contact-input"
+                 value="{{ c.date_contact|date:'Y-m-d' }}">
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-primary save-edit-btn" data-pk="{{ c.pk }}">
+            <i class="bi bi-check-lg me-1"></i>حفظ
+          </button>
+          <button class="btn btn-sm btn-outline-secondary cancel-edit-btn">إلغاء</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center text-muted py-5">
+    <i class="bi bi-funnel fs-1 d-block mb-2"></i>
+    <h5>لا توجد نتائج</h5>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CSRF = '{{ csrf_token }}';
+
+async function apiPost(url, data) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+    body: JSON.stringify(data),
+  });
+  return r.json();
+}
+
+function setSaving(card, on) { card.classList.toggle('saving', on); }
+
+// Changement de statut
+document.querySelectorAll('.statut-select').forEach(sel => {
+  sel.addEventListener('change', async function() {
+    const pk   = this.dataset.pk;
+    const card = document.getElementById('card-' + pk);
+    setSaving(card, true);
+    const res = await apiPost(`/suivi/${pk}/rapide/`, {champ: 'statut', valeur: this.value});
+    setSaving(card, false);
+    if (res.ok) {
+      card.className = card.className.replace(/statut-\S+/, 'statut-' + res.statut);
+      this.className = `statut-select badge bg-${res.statut_color} border-0 text-white`;
+    } else { alert(res.msg || 'خطأ'); location.reload(); }
+  });
+});
+
+// Toggle remarque
+document.querySelectorAll('.toggle-remarque').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const card = this.closest('.commune-card');
+    card.classList.toggle('open');
+    this.innerHTML = card.classList.contains('open')
+      ? '<i class="bi bi-chat-left-text me-1"></i>إخفاء الملاحظة'
+      : '<i class="bi bi-chat-left-text me-1"></i>عرض الملاحظة';
+  });
+});
+
+// Toggle edit
+document.querySelectorAll('.toggle-edit-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    this.closest('.commune-card').classList.toggle('editing');
+  });
+});
+document.querySelectorAll('.cancel-edit-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    this.closest('.commune-card').classList.remove('editing');
+  });
+});
+
+// Save edit
+document.querySelectorAll('.save-edit-btn').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const pk   = this.dataset.pk;
+    const card = document.getElementById('card-' + pk);
+    const remarque     = card.querySelector('.remarque-input').value;
+    const date_contact = card.querySelector('.date-contact-input').value;
+    setSaving(card, true);
+    const [r1, r2] = await Promise.all([
+      apiPost(`/suivi/${pk}/rapide/`, {champ: 'remarque',     valeur: remarque}),
+      apiPost(`/suivi/${pk}/rapide/`, {champ: 'date_contact', valeur: date_contact}),
+    ]);
+    setSaving(card, false);
+    if (r1.ok && r2.ok) {
+      card.classList.remove('editing');
+      // Mettre à jour la remarque affichée
+      let rt = card.querySelector('.remarque-text');
+      if (remarque) {
+        if (!rt) {
+          rt = document.createElement('div');
+          rt.className = 'remarque-text';
+          card.querySelector('.view-zone').appendChild(rt);
+          const tb = document.createElement('button');
+          tb.className = 'btn btn-link p-0 mt-1 toggle-remarque';
+          tb.style = 'font-size:11px; color:#6c757d;';
+          tb.innerHTML = '<i class="bi bi-chat-left-text me-1"></i>عرض الملاحظة';
+          tb.addEventListener('click', function() {
+            card.classList.toggle('open');
+            this.innerHTML = card.classList.contains('open')
+              ? '<i class="bi bi-chat-left-text me-1"></i>إخفاء الملاحظة'
+              : '<i class="bi bi-chat-left-text me-1"></i>عرض الملاحظة';
+          });
+          card.querySelector('.view-zone').insertBefore(tb, rt);
+        }
+        rt.textContent = remarque;
+      }
+      // Mettre à jour la meta
+      const metas = card.querySelectorAll('.commune-meta');
+      if (metas.length) {
+        metas[0].innerHTML = `<i class="bi bi-clock" style="font-size:10px;"></i> ${r1.modifie_par} — ${r1.modifie_le}`;
+      }
+    } else { alert('خطأ في الحفظ'); }
+  });
+});
+
+// Claim / Release
+document.querySelectorAll('.claim-btn-action').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const res = await apiPost(`/suivi/${this.dataset.pk}/assigner/`, {action: 'claim'});
+    if (res.ok) location.reload(); else alert(res.msg);
+  });
+});
+document.querySelectorAll('.release-btn').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const res = await apiPost(`/suivi/${this.dataset.pk}/assigner/`, {action: 'release'});
+    if (res.ok) location.reload(); else alert(res.msg);
+  });
+});
+
+// Auto-refresh 30s
+setTimeout(() => location.reload(), 30000);
+</script>
+{% endblock %}

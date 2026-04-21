@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}مندوبية سلطة الانتخابات{% endblock %}</title>
+<!-- Bootstrap 5 RTL -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Cairo', sans-serif; }
+  body { background-color: #f0f4f8; }
+
+  /* Sidebar */
+  .sidebar {
+    background: linear-gradient(180deg, #1a3a5c 0%, #0d2137 100%);
+    min-height: 100vh;
+    width: 260px;
+    position: fixed;
+    top: 0; right: 0;
+    z-index: 1000;
+    overflow-y: auto;
+    box-shadow: -3px 0 15px rgba(0,0,0,0.2);
+  }
+  .sidebar-brand {
+    background: rgba(255,255,255,0.1);
+    padding: 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .sidebar-brand h6 { color: #fff; font-weight: 700; font-size: 13px; margin: 0; line-height: 1.5; }
+  .sidebar-brand small { color: rgba(255,255,255,0.6); font-size: 11px; }
+
+  .sidebar .nav-link {
+    color: rgba(255,255,255,0.75);
+    padding: 10px 18px;
+    border-radius: 8px;
+    margin: 2px 10px;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .sidebar .nav-link:hover,
+  .sidebar .nav-link.active {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+  }
+  .sidebar .nav-link i { font-size: 16px; width: 22px; }
+
+  .sidebar-section {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 14px 20px 4px;
+    font-weight: 600;
+  }
+
+  /* Main content */
+  .main-content {
+    margin-right: 260px;
+    padding: 0;
+  }
+
+  /* Top navbar */
+  .topbar {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  /* Cards */
+  .card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .card-header { border-bottom: 1px solid #f0f4f8; background: #fff; border-radius: 12px 12px 0 0 !important; }
+
+  /* Stat cards */
+  .stat-card {
+    border-radius: 12px;
+    padding: 20px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card .icon {
+    font-size: 42px;
+    opacity: 0.25;
+    position: absolute;
+    left: 16px;
+    bottom: 10px;
+  }
+  .stat-card h2 { font-size: 32px; font-weight: 700; margin: 0; }
+  .stat-card p { margin: 0; font-size: 13px; opacity: 0.9; }
+
+  /* Badge categories */
+  .badge-mandoub { background-color: #1a5276; }
+  .badge-ouvrier { background-color: #117a65; }
+  .badge-charge { background-color: #7d6608; }
+  .badge-responsable { background-color: #6c3483; }
+
+  /* Table */
+  .table th { background: #f8fafc; font-weight: 600; font-size: 13px; color: #4a5568; }
+  .table td { vertical-align: middle; font-size: 14px; }
+  .table-hover tbody tr:hover { background-color: #f0f7ff; }
+
+  /* Form sections */
+  .form-section { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .form-section-title { font-size: 15px; font-weight: 700; color: #1a3a5c; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 2px solid #e8f0fe; display: flex; align-items: center; gap: 8px; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar { width: 100%; min-height: auto; position: relative; }
+    .main-content { margin-right: 0; }
+  }
+
+  .btn { border-radius: 8px; font-size: 14px; }
+  .form-control, .form-select { border-radius: 8px; font-size: 14px; }
+  .alert { border-radius: 10px; border: none; }
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <i class="bi bi-patch-check-fill text-warning fs-5"></i>
+      <h6>مندوبية سلطة الانتخابات</h6>
+    </div>
+    <small>نظام إدارة الأفراد</small>
+  </div>
+
+  <nav class="py-2">
+    <div class="sidebar-section">الرئيسية</div>
+    <a href="{% url 'accueil' %}" class="nav-link {% if request.resolver_match.url_name == 'accueil' %}active{% endif %}">
+      <i class="bi bi-grid-fill me-1"></i> لوحة التحكم
+    </a>
+    <a href="{% url 'suivi:tableau_bord' %}" class="nav-link {% if 'suivi' in request.resolver_match.namespace %}active{% endif %}">
+      <i class="bi bi-kanban-fill me-1"></i> متابعة بلديات بجاية
+    </a>
+
+    <div class="sidebar-section">إدارة الأفراد</div>
+    <a href="{% url 'liste_personnes' %}" class="nav-link {% if 'personne' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-people-fill me-1"></i> كل الأفراد
+    </a>
+    <a href="{% url 'liste_personnes' %}?categorie=mandoub" class="nav-link">
+      <i class="bi bi-person-badge me-1"></i> المندوبون
+    </a>
+    <a href="{% url 'liste_personnes' %}?categorie=ouvrier" class="nav-link">
+      <i class="bi bi-person-gear me-1"></i> عمال المندوبية
+    </a>
+    <a href="{% url 'liste_personnes' %}?categorie=charge_application" class="nav-link">
+      <i class="bi bi-laptop me-1"></i> مكلفون بالتطبيقة
+    </a>
+    <a href="{% url 'liste_personnes' %}?categorie=responsable" class="nav-link">
+      <i class="bi bi-shield-check me-1"></i> المسخرون
+    </a>
+
+    <div class="sidebar-section">الإجراءات</div>
+    <a href="{% url 'ajouter_personne' %}" class="nav-link">
+      <i class="bi bi-person-plus-fill me-1"></i> إضافة شخص
+    </a>
+    <a href="{% url 'exporter_excel' %}" class="nav-link">
+      <i class="bi bi-file-earmark-excel-fill me-1"></i> تصدير Excel
+    </a>
+
+    <div class="sidebar-section">الحساب</div>
+    {% if request.user.is_superuser %}
+    <a href="/admin/" class="nav-link">
+      <i class="bi bi-sliders me-1"></i> لوحة الإدارة
+    </a>
+    {% endif %}
+    <a href="{% url 'logout' %}" class="nav-link text-danger">
+      <i class="bi bi-box-arrow-left me-1"></i> تسجيل الخروج
+    </a>
+  </nav>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+  <div class="topbar">
+    <div>
+      <span class="fw-600 text-secondary" style="font-size:14px;">
+        <i class="bi bi-person-circle me-1"></i>
+        مرحباً، {{ request.user.get_full_name|default:request.user.username }}
+      </span>
+    </div>
+    <div class="text-muted" style="font-size:13px;">
+      <i class="bi bi-calendar3 me-1"></i>
+      <span id="current-date"></span>
+    </div>
+  </div>
+
+  <div class="p-4">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const d = new Date();
+  document.getElementById('current-date').textContent =
+    d.toLocaleDateString('ar-DZ', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

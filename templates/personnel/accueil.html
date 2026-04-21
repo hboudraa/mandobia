@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}لوحة التحكم — مندوبية سلطة الانتخابات{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h4 class="fw-bold text-dark mb-1">لوحة التحكم</h4>
+  <p class="text-muted mb-0" style="font-size:14px;">نظرة عامة على بيانات المندوبية</p>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="stat-card" style="background: linear-gradient(135deg,#1a5276,#2980b9);">
+      <p>إجمالي الأفراد</p>
+      <h2>{{ stats.total }}</h2>
+      <i class="bi bi-people icon"></i>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="stat-card" style="background: linear-gradient(135deg,#117a65,#1abc9c);">
+      <p>المندوبون</p>
+      <h2>{{ stats.mandoubs }}</h2>
+      <i class="bi bi-person-badge icon"></i>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="stat-card" style="background: linear-gradient(135deg,#7d6608,#f39c12);">
+      <p>عمال المندوبية</p>
+      <h2>{{ stats.ouvriers }}</h2>
+      <i class="bi bi-person-gear icon"></i>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="stat-card" style="background: linear-gradient(135deg,#6c3483,#9b59b6);">
+      <p>مكلفو التطبيقة</p>
+      <h2>{{ stats.charges }}</h2>
+      <i class="bi bi-laptop icon"></i>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="stat-card" style="background: linear-gradient(135deg,#922b21,#e74c3c);">
+      <p>المسخرون</p>
+      <h2>{{ stats.responsables }}</h2>
+      <i class="bi bi-shield-check icon"></i>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="stat-card" style="background: linear-gradient(135deg,#1d6a27,#27ae60);">
+      <p>نشطون</p>
+      <h2>{{ stats.actifs }}</h2>
+      <i class="bi bi-check-circle icon"></i>
+    </div>
+  </div>
+</div>
+
+<!-- Quick actions + Recent -->
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>الإجراءات السريعة</h6>
+      </div>
+      <div class="card-body d-grid gap-2">
+        <a href="{% url 'ajouter_personne' %}?categorie=mandoub" class="btn btn-outline-primary text-start">
+          <i class="bi bi-person-badge me-2"></i> إضافة مندوب
+        </a>
+        <a href="{% url 'ajouter_personne' %}?categorie=ouvrier" class="btn btn-outline-success text-start">
+          <i class="bi bi-person-gear me-2"></i> إضافة عامل مندوبية
+        </a>
+        <a href="{% url 'ajouter_personne' %}?categorie=charge_application" class="btn btn-outline-warning text-start">
+          <i class="bi bi-laptop me-2"></i> إضافة مكلف بالتطبيقة
+        </a>
+        <a href="{% url 'ajouter_personne' %}?categorie=responsable" class="btn btn-outline-secondary text-start">
+          <i class="bi bi-shield-check me-2"></i> إضافة مسؤول
+        </a>
+        <hr>
+        <a href="{% url 'exporter_excel' %}" class="btn btn-success text-start">
+          <i class="bi bi-file-earmark-excel-fill me-2"></i> تصدير الكل إلى Excel
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history text-primary me-2"></i>آخر الإضافات</h6>
+        <a href="{% url 'liste_personnes' %}" class="btn btn-sm btn-outline-primary">عرض الكل</a>
+      </div>
+      <div class="card-body p-0">
+        {% if derniers %}
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>الاسم الكامل</th>
+              <th>الفئة</th>
+              <th>NIN</th>
+              <th>الولاية</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in derniers %}
+            <tr>
+              <td class="fw-bold">{{ p.get_full_name }}</td>
+              <td>
+                <span class="badge
+                  {% if p.categorie == 'mandoub' %}badge-mandoub
+                  {% elif p.categorie == 'ouvrier' %}badge-ouvrier
+                  {% elif p.categorie == 'charge_application' %}badge-charge
+                  {% else %}badge-responsable{% endif %}">
+                  {{ p.get_categorie_display }}
+                </span>
+              </td>
+              <td><code style="font-size:12px;">{{ p.nin }}</code></td>
+              <td>{{ p.get_wilaya_display }}</td>
+              <td>
+                <a href="{% url 'detail_personne' p.pk %}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+          لا توجد بيانات بعد
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
