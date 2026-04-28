@@ -33,7 +33,9 @@ def accueil(request):
         'mandoubs': Personne.objects.filter(categorie='mandoub').count(),
         'ouvriers': Personne.objects.filter(categorie='ouvrier').count(),
         'charges': Personne.objects.filter(categorie='charge_application').count(),
+        'SG':Personne.objects.filter(categorie='SG').count(),
         'responsables': Personne.objects.filter(categorie='responsable').count(),
+        'a_disposition': Personne.objects.filter(categorie='a_disposition').count(),
         'actifs': Personne.objects.filter(actif=True).count(),
     }
     derniers = Personne.objects.order_by('-cree_le')[:5]

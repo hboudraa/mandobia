@@ -44,7 +44,9 @@ CATEGORIE_CHOICES = [
     ('mandoub', 'مندوب'),
     ('ouvrier', 'عامل مندوبية'),
     ('charge_application', 'مكلف بالتطبيقة'),
+    ('SG','أمين عام'),
     ('responsable', 'مسؤول / إداري'),
+    ('a_disposition','تحت التصرف'),
 ]
 
 ROLE_CHOICES = [

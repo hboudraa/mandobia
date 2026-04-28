@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}لوحة تحكم المراجعة الدورية{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold text-primary"><i class="bi bi-graph-up me-2"></i>لوحة تحكم المراجعة الدورية</h2>
+    </div>
+</div>
+
+{% if active_period %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    <strong>فترة المراجعة النشطة:</strong> {{ active_period.year }}
+    ({{ active_period.start_date|date:"d/m/Y" }} - {{ active_period.end_date|date:"d/m/Y" }})
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="icon"><i class="bi bi-building"></i></div>
+            <h2>{{ total_municipalities }}</h2>
+            <p>عدد البلديات</p>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <div class="icon"><i class="bi bi-people"></i></div>
+            <h2>{{ total_voters_before|floatformat:0 }}</h2>
+            <p>الهيئة الناخبة قبل</p>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="icon"><i class="bi bi-graph-up"></i></div>
+            <h2>{{ total_voters_after|floatformat:0 }}</h2>
+            <p>الهيئة الناخبة بعد</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>الناخبون الجدد</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-success mb-0"><strong>{{ total_new_registered|floatformat:0 }}</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-dash-circle me-2"></i>الناخبون المشطوبون</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-danger mb-0"><strong>{{ total_removed|floatformat:0 }}</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <a href="{% url 'review:reviews_list' %}" class="btn btn-primary me-2">
+            <i class="bi bi-list me-1"></i> عرض كل البيانات
+        </a>
+        <a href="{% url 'review:review_add' %}" class="btn btn-success me-2">
+            <i class="bi bi-plus me-1"></i> إضافة بيانات جديدة
+        </a>
+        <a href="{% url 'review:export_excel' %}" class="btn btn-warning">
+            <i class="bi bi-file-earmark-excel me-1"></i> تصدير Excel
+        </a>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <strong>لا توجد فترة مراجعة نشطة حالياً.</strong>
+    <a href="{% url 'review:period_add' %}">أنشئ فترة جديدة</a>
+</div>
+{% endif %}
+
+{% endblock %}
+

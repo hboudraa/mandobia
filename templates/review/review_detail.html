@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل المراجعة{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="fw-bold text-primary">{{ review.municipality_name }}</h2>
+            <div>
+                <a href="{% url 'review:review_edit' review.pk %}" class="btn btn-warning me-2">
+                    <i class="bi bi-pencil me-1"></i> تعديل
+                </a>
+                <a href="{% url 'review:reviews_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> رجوع
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">معلومات البلدية</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">رمز البلدية</label>
+                        <p>{{ review.municipality_code }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">الولاية</label>
+                        <p>{{ review.wilaya }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">فترة المراجعة</label>
+                        <p>{{ review.review_period.year }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">أنشأه</label>
+                        <p>{{ review.created_by }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">الإحصائيات الأساسية</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 bg-light rounded">
+                            <label class="form-label fw-bold text-muted">الهيئة الناخبة قبل المراجعة</label>
+                            <h4 class="text-primary">{{ review.voters_before_review }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 bg-light rounded">
+                            <label class="form-label fw-bold text-muted">الهيئة الناخبة بعد المراجعة</label>
+                            <h4 class="text-success">{{ voters_after_review }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">الناخبون المسجلون الجدد</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">المجموع</label>
+                        <p class="text-success">{{ review.new_registered_total }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">بسبب بلوغ السن</label>
+                        <p>{{ review.new_by_age_reason }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">تغيير الإقامة</label>
+                        <p>{{ review.new_by_residence_change }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">بسبب الاغفال</label>
+                        <p>{{ review.new_by_omission }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">التحويل</label>
+                        <p>{{ review.new_by_transfer }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold">رجال</label>
+                        <p>{{ review.new_males }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold">نساء</label>
+                        <p>{{ review.new_females }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">الناخبون المشطوبون</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">المجموع</label>
+                        <p class="text-danger">{{ review.removed_total }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">بسبب الوفاة</label>
+                        <p>{{ review.removed_by_death }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">تسجيلات متكررة</label>
+                        <p>{{ review.removed_by_duplication }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">تغيير الإقامة</label>
+                        <p>{{ review.removed_by_residence_change }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">التحويل</label>
+                        <p>{{ review.removed_by_transfer }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">فقدان حق الانتخاب</label>
+                        <p>{{ review.removed_by_loss_rights }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold">رجال</label>
+                        <p>{{ review.removed_males }}</p>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-bold">نساء</label>
+                        <p>{{ review.removed_females }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        {% if age_groups %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">توزيع الناخبين حسب العمر</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>الفئة</th>
+                            <th>رجال</th>
+                            <th>نساء</th>
+                            <th>الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in age_groups %}
+                        <tr>
+                            <td><small>{{ group.get_age_group_display }}</small></td>
+                            <td>{{ group.males }}</td>
+                            <td>{{ group.females }}</td>
+                            <td><strong>{{ group.total }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+

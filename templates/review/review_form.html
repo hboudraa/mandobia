@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titre }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold text-primary">{{ titre }}</h2>
+    </div>
+</div>
+
+<form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ form.non_field_errors }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- معلومات البلديـــة -->
+            <div class="form-section">
+                <h6 class="form-section-title">
+                    <i class="bi bi-building"></i> معلومات البلدية
+                </h6>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ form.review_period.label }}</label>
+                        {{ form.review_period }}
+                        {% if form.review_period.errors %}
+                        <div class="invalid-feedback d-block">{{ form.review_period.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ form.municipality_code.label }}</label>
+                        {{ form.municipality_code }}
+                        {% if form.municipality_code.errors %}
+                        <div class="invalid-feedback d-block">{{ form.municipality_code.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ form.wilaya.label }}</label>
+                        {{ form.wilaya }}
+                        {% if form.wilaya.errors %}
+                        <div class="invalid-feedback d-block">{{ form.wilaya.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.municipality_name.label }}</label>
+                        {{ form.municipality_name }}
+                        {% if form.municipality_name.errors %}
+                        <div class="invalid-feedback d-block">{{ form.municipality_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.created_by.label }}</label>
+                        {{ form.created_by }}
+                        {% if form.created_by.errors %}
+                        <div class="invalid-feedback d-block">{{ form.created_by.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- الهيئة الناخبة قبل المراجعة -->
+            <div class="form-section">
+                <h6 class="form-section-title">
+                    <i class="bi bi-graph-down"></i> الهيئة الناخبة قبل المراجعة
+                </h6>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.voters_before_review.label }}</label>
+                        {{ form.voters_before_review }}
+                        {% if form.voters_before_review.errors %}
+                        <div class="invalid-feedback d-block">{{ form.voters_before_review.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- الناخبون المسجلون الجدد -->
+            <div class="form-section">
+                <h6 class="form-section-title">
+                    <i class="bi bi-plus-circle"></i> الناخبون المسجلون الجدد
+                </h6>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.new_by_age_reason.label }}</label>
+                        {{ form.new_by_age_reason }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.new_by_residence_change.label }}</label>
+                        {{ form.new_by_residence_change }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.new_by_omission.label }}</label>
+                        {{ form.new_by_omission }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.new_by_transfer.label }}</label>
+                        {{ form.new_by_transfer }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ form.new_males.label }}</label>
+                        {{ form.new_males }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ form.new_females.label }}</label>
+                        {{ form.new_females }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ form.new_registered_total.label }}</label>
+                        {{ form.new_registered_total }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- الناخبون المشطوبون -->
+            <div class="form-section">
+                <h6 class="form-section-title">
+                    <i class="bi bi-dash-circle"></i> الناخبون المشطوبون الجدد
+                </h6>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.removed_by_death.label }}</label>
+                        {{ form.removed_by_death }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.removed_by_duplication.label }}</label>
+                        {{ form.removed_by_duplication }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.removed_by_residence_change.label }}</label>
+                        {{ form.removed_by_residence_change }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.removed_by_transfer.label }}</label>
+                        {{ form.removed_by_transfer }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.removed_by_loss_rights.label }}</label>
+                        {{ form.removed_by_loss_rights }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ form.removed_males.label }}</label>
+                        {{ form.removed_males }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ form.removed_females.label }}</label>
+                        {{ form.removed_females }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ form.removed_total.label }}</label>
+                        {{ form.removed_total }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- معلومات إضافية -->
+            <div class="form-section">
+                <h6 class="form-section-title">
+                    <i class="bi bi-info-circle"></i> معلومات إضافية
+                </h6>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.data_updated.label }}</label>
+                        {{ form.data_updated }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">تحيين بيانات الناخبين</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.voters_after_review_males.label }}</label>
+                        {{ form.voters_after_review_males }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ form.voters_after_review_females.label }}</label>
+                        {{ form.voters_after_review_females }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- الأزرار -->
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-check me-1"></i>
+                            {% if mode == 'edit' %}تحديث{% else %}حفظ{% endif %}
+                        </button>
+                        <a href="{% url 'review:reviews_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> رجوع
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    // Bootstrap form validation
+    (function () {
+        'use strict';
+        window.addEventListener('load', function () {
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+    }());
+</script>
+
+{% endblock %}
+

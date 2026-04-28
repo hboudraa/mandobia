@@ -142,6 +142,9 @@
     <a href="{% url 'suivi:tableau_bord' %}" class="nav-link {% if 'suivi' in request.resolver_match.namespace %}active{% endif %}">
       <i class="bi bi-kanban-fill me-1"></i> متابعة بلديات بجاية
     </a>
+    <a href="{% url 'review:dashboard' %}" class="nav-link {% if 'review' in request.resolver_match.namespace %}active{% endif %}">
+      <i class="bi bi-file-earmark-chart me-1"></i> المراجعة الدورية
+    </a>
 
     <div class="sidebar-section">إدارة الأفراد</div>
     <a href="{% url 'liste_personnes' %}" class="nav-link {% if 'personne' in request.resolver_match.url_name %}active{% endif %}">
@@ -153,12 +156,19 @@
     <a href="{% url 'liste_personnes' %}?categorie=ouvrier" class="nav-link">
       <i class="bi bi-person-gear me-1"></i> عمال المندوبية
     </a>
+    <a href="{% url 'liste_personnes' %}?categorie=responsable" class="nav-link">
+      <i class="bi bi-shield-check me-1"></i> تحت التصرف
+    </a>
     <a href="{% url 'liste_personnes' %}?categorie=charge_application" class="nav-link">
       <i class="bi bi-laptop me-1"></i> مكلفون بالتطبيقة
+    </a>
+    <a href="{% url 'liste_personnes' %}?categorie=charge_application" class="nav-link">
+      <i class="bi bi-laptop me-1"></i> أمين عام
     </a>
     <a href="{% url 'liste_personnes' %}?categorie=responsable" class="nav-link">
       <i class="bi bi-shield-check me-1"></i> المسخرون
     </a>
+
 
     <div class="sidebar-section">الإجراءات</div>
     <a href="{% url 'ajouter_personne' %}" class="nav-link">

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}تأكيد الحذف{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>تأكيد الحذف</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">
+                    هل أنت متأكد من رغبتك في حذف البيانات الخاصة بـ <strong>{{ review.municipality_name }}</strong>؟
+                </p>
+                <p class="text-muted small">
+                    هذا الإجراء لا يمكن التراجع عنه.
+                </p>
+            </div>
+            <div class="card-footer">
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger me-2">
+                        <i class="bi bi-trash me-1"></i> حذف نهائي
+                    </button>
+                </form>
+                <a href="{% url 'review:review_detail' review.pk %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> رجوع
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

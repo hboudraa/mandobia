@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}قائمة المراجعات{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="fw-bold text-primary"><i class="bi bi-list me-2"></i>قائمة المراجعات الدورية</h2>
+            <a href="{% url 'review:review_add' %}" class="btn btn-success">
+                <i class="bi bi-plus me-1"></i> إضافة مراجعة جديدة
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">البحث والتصفية</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                {{ form.review_period }}
+            </div>
+            <div class="col-md-3">
+                {{ form.wilaya }}
+            </div>
+            <div class="col-md-3">
+                {{ form.municipality_name }}
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i> بحث
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">الإجمالي: <span class="badge bg-primary">{{ total }}</span></h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>البلدية</th>
+                    <th>الرمز</th>
+                    <th>الولاية</th>
+                    <th>الفترة</th>
+                    <th>الهيئة (قبل)</th>
+                    <th>الجدد</th>
+                    <th>المشطوبون</th>
+                    <th>الهيئة (بعد)</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in reviews %}
+                <tr>
+                    <td><strong>{{ review.municipality_name }}</strong></td>
+                    <td>{{ review.municipality_code }}</td>
+                    <td>{{ review.wilaya }}</td>
+                    <td>{{ review.review_period.year }}</td>
+                    <td>{{ review.voters_before_review }}</td>
+                    <td class="text-success">{{ review.new_registered_total }}</td>
+                    <td class="text-danger">{{ review.removed_total }}</td>
+                    <td class="fw-bold">{{ review.voters_after_review_total }}</td>
+                    <td>
+                        <a href="{% url 'review:review_detail' review.pk %}" class="btn btn-sm btn-info" title="عرض التفاصيل">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'review:review_edit' review.pk %}" class="btn btn-sm btn-warning" title="تعديل">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'review:review_delete' review.pk %}" class="btn btn-sm btn-danger" title="حذف">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox"></i> لا توجد بيانات
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+

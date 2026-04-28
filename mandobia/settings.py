@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'personnel',
     'suivi',
+    'review',
 ]
 
 MIDDLEWARE = [
