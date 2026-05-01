@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'personnel',
     'suivi',
     'review',
+    'inventory',
 ]
 
 MIDDLEWARE = [

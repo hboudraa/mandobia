@@ -18,8 +18,15 @@
   </div>
   <div class="col-md-2 col-sm-4 col-6">
     <div class="stat-card" style="background: linear-gradient(135deg,#117a65,#1abc9c);">
-      <p>المندوبون</p>
+      <p>المندوبون الوائيين</p>
       <h2>{{ stats.mandoubs }}</h2>
+      <i class="bi bi-person-badge icon"></i>
+    </div>
+  </div>
+  <div class="col-md-2 col-sm-4 col-6">
+    <div class="stat-card" style="background: linear-gradient(135deg,#117a65,#1abc9c);">
+      <p>المندوبون البلديون</p>
+      <h2>{{ stats.mandoubs_b }}</h2>
       <i class="bi bi-person-badge icon"></i>
     </div>
   </div>
@@ -76,7 +83,10 @@
       </div>
       <div class="card-body d-grid gap-2">
         <a href="{% url 'ajouter_personne' %}?categorie=mandoub" class="btn btn-outline-primary text-start">
-          <i class="bi bi-person-badge me-2"></i> إضافة مندوب
+          <i class="bi bi-person-badge me-2"></i>إضافة مندوب ولائي
+        </a>
+        <a href="{% url 'ajouter_personne' %}?categorie=mandoub" class="btn btn-outline-primary text-start">
+          <i class="bi bi-person-badge me-2"></i>  إضافة مندوب بلدي
         </a>
         <a href="{% url 'ajouter_personne' %}?categorie=ouvrier" class="btn btn-outline-success text-start">
           <i class="bi bi-person-gear me-2"></i> إضافة عامل مندوبية

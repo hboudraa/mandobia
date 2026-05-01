@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تنبيهات المخزون - إدارة المخزون{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-bell text-danger me-2"></i>
+                    تنبيهات المخزون
+                </h1>
+                <div>
+                    <a href="{% url 'inventory:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-tachometer-alt me-1"></i>لوحة التحكم
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- فلاتر البحث -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter me-1"></i>
+                فلاتر البحث
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="type_alerte" class="form-label">نوع التنبيه</label>
+                    <select name="type_alerte" id="type_alerte" class="form-select">
+                        <option value="">جميع التنبيهات</option>
+                        <option value="stock_faible" {% if filters.type_alerte == 'stock_faible' %}selected{% endif %}>مخزون منخفض</option>
+                        <option value="stock_epuise" {% if filters.type_alerte == 'stock_epuise' %}selected{% endif %}>مخزون نفد</option>
+                        <option value="expiration_proche" {% if filters.type_alerte == 'expiration_proche' %}selected{% endif %}>انتهاء الصلاحية قريب</option>
+                        <option value="expiration_depasse" {% if filters.type_alerte == 'expiration_depasse' %}selected{% endif %}>صلاحية منتهية</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="lue" class="form-label">الحالة</label>
+                    <select name="lue" id="lue" class="form-select">
+                        <option value="">الكل</option>
+                        <option value="non" {% if filters.lue == 'non' %}selected{% endif %}>غير مقروء</option>
+                        <option value="oui" {% if filters.lue == 'oui' %}selected{% endif %}>مقروء</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="q" class="form-label">البحث</label>
+                    <input type="text" name="q" id="q" class="form-control" placeholder="البحث حسب المنتج أو الرسالة..." value="{{ filters.q }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>بحث
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- إحصائيات التنبيهات -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-left-danger">
+                <div class="card-body p-2">
+                    <div class="text-xs text-danger font-weight-bold">إجمالي التنبيهات</div>
+                    <div class="h6 mb-0">
+                        {{ stats.total }} تنبيه
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-warning">
+                <div class="card-body p-2">
+                    <div class="text-xs text-warning font-weight-bold">غير مقروءة</div>
+                    <div class="h6 mb-0">
+                        {{ stats.non_lues }} تنبيه
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% for type_info in stats.par_type %}
+        <div class="col-md-3">
+            <div class="card border-left-info">
+                <div class="card-body p-2">
+                    <div class="text-xs text-info font-weight-bold">{{ type_info.type_alerte }}</div>
+                    <div class="h6 mb-0">
+                        {{ type_info.count }} تنبيه
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if forloop.counter0 == 1 %}
+            </div><div class="row mb-4">
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- قائمة التنبيهات -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-1"></i>
+                التنبيهات ({{ alertes|length }})
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if alertes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>المنتج</th>
+                                <th>النوع</th>
+                                <th>الرسالة</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alerte in alertes %}
+                            <tr {% if not alerte.lue %}class="table-light"{% endif %}>
+                                <td>{{ alerte.date_creation|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <strong>
+                                        {% if alerte.produit %}
+                                            <a href="{% url 'inventory:produit_detail' alerte.produit.pk %}" class="text-decoration-none">
+                                                {{ alerte.produit.nom }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </strong>
+                                </td>
+                                <td>
+                                    {% if alerte.type_alerte == 'stock_faible' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>مخزون منخفض
+                                        </span>
+                                    {% elif alerte.type_alerte == 'stock_epuise' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle me-1"></i>مخزون نفد
+                                        </span>
+                                    {% elif alerte.type_alerte == 'expiration_proche' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock me-1"></i>صلاحية قريبة
+                                        </span>
+                                    {% elif alerte.type_alerte == 'expiration_depasse' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-circle me-1"></i>صلاحية منتهية
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-info-circle me-1"></i>{{ alerte.get_type_alerte_display }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ alerte.message|truncatechars:60 }}</small>
+                                </td>
+                                <td>
+                                    {% if alerte.lue %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>مقروء
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-envelope me-1"></i>جديد
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not alerte.lue %}
+                                    <button class="btn btn-sm btn-outline-primary mark-as-read" data-alerte-id="{{ alerte.pk }}" title="تحديد كمقروء">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    {% endif %}
+                                    <a href="{% url 'inventory:produit_detail' alerte.produit.pk %}" class="btn btn-sm btn-outline-info" title="عرض المنتج">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h5 class="text-muted">لا توجد تنبيهات</h5>
+                    <p class="text-muted">جميع عمليات المخزون تحت السيطرة</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+.border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+.border-left-danger { border-left: 0.25rem solid #e74a3b !important; }
+.border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+
+.shadow { box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important; }
+.card { border: none; border-radius: 0.35rem; }
+
+.table-hover tbody tr:hover { background-color: rgba(0,0,0,.075); }
+</style>
+
+<script>
+document.querySelectorAll('.mark-as-read').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const alerteId = this.dataset.alerteId;
+        fetch(`/inventory/alertes/${alerteId}/marquer-lue/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+

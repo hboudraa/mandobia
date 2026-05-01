@@ -31,6 +31,7 @@ def accueil(request):
     stats = {
         'total': Personne.objects.count(),
         'mandoubs': Personne.objects.filter(categorie='mandoub').count(),
+        'mandoubs_b': Personne.objects.filter(categorie='mandoub_b').count(),
         'ouvriers': Personne.objects.filter(categorie='ouvrier').count(),
         'charges': Personne.objects.filter(categorie='charge_application').count(),
         'SG':Personne.objects.filter(categorie='SG').count(),

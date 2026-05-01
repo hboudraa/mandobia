@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}قائمة المنتجات - إدارة المخزون{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-boxes text-primary me-2"></i>
+                    قائمة المنتجات
+                </h1>
+                <div>
+                    <a href="{% url 'inventory:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-tachometer-alt me-1"></i>لوحة التحكم
+                    </a>
+                    <a href="{% url 'admin:inventory_produit_add' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>إضافة منتج
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- فلاتر البحث -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter me-1"></i>
+                فلاتر البحث
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="categorie" class="form-label">الفئة</label>
+                    <select name="categorie" id="categorie" class="form-select">
+                        <option value="">جميع الفئات</option>
+                        {% for categorie in categories %}
+                        <option value="{{ categorie.pk }}" {% if filters.categorie == categorie.pk|stringformat:'s' %}selected{% endif %}>
+                            {{ categorie.nom }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="statut_stock" class="form-label">حالة المخزون</label>
+                    <select name="statut_stock" id="statut_stock" class="form-select">
+                        <option value="">جميع الحالات</option>
+                        <option value="normal" {% if filters.statut_stock == 'normal' %}selected{% endif %}>مخزون طبيعي</option>
+                        <option value="faible" {% if filters.statut_stock == 'faible' %}selected{% endif %}>مخزون منخفض</option>
+                        <option value="epuise" {% if filters.statut_stock == 'epuise' %}selected{% endif %}>نفد المخزون</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="q" class="form-label">البحث</label>
+                    <input type="text" name="q" id="q" class="form-control" placeholder="اسم المنتج أو الرمز..." value="{{ filters.q }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>بحث
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- قائمة المنتجات -->
+    <div class="card shadow">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-1"></i>
+                المنتجات ({{ produits|length }})
+            </h6>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-sort me-1"></i>ترتيب
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="?{% for key, value in request.GET.items %}{% if key != 'order_by' %}{{ key }}={{ value }}&{% endif %}{% endfor %}order_by=nom">بالاسم (أ-ي)</a></li>
+                    <li><a class="dropdown-item" href="?{% for key, value in request.GET.items %}{% if key != 'order_by' %}{{ key }}={{ value }}&{% endif %}{% endfor %}order_by=-nom">بالاسم (ي-أ)</a></li>
+                    <li><a class="dropdown-item" href="?{% for key, value in request.GET.items %}{% if key != 'order_by' %}{{ key }}={{ value }}&{% endif %}{% endfor %}order_by=quantite_stock">بالكمية (تصاعدي)</a></li>
+                    <li><a class="dropdown-item" href="?{% for key, value in request.GET.items %}{% if key != 'order_by' %}{{ key }}={{ value }}&{% endif %}{% endfor %}order_by=-quantite_stock">بالكمية (تنازلي)</a></li>
+                    <li><a class="dropdown-item" href="?{% for key, value in request.GET.items %}{% if key != 'order_by' %}{{ key }}={{ value }}&{% endif %}{% endfor %}order_by=valeur_stock">بالقيمة (تصاعدي)</a></li>
+                    <li><a class="dropdown-item" href="?{% for key, value in request.GET.items %}{% if key != 'order_by' %}{{ key }}={{ value }}&{% endif %}{% endfor %}order_by=-valeur_stock">بالقيمة (تنازلي)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if produits %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>المنتج</th>
+                                <th>الرمز</th>
+                                <th>الفئة</th>
+                                <th>الكمية</th>
+                                <th>حالة المخزون</th>
+                                <th>القيمة</th>
+                                <th>المورد</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for produit in produits %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>
+                                            <a href="{% url 'inventory:produit_detail' produit.pk %}" class="text-decoration-none">
+                                                {{ produit.nom }}
+                                            </a>
+                                        </strong>
+                                        {% if produit.description %}
+                                        <br><small class="text-muted">{{ produit.description|truncatechars:50 }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <code>{{ produit.code_produit }}</code>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background-color: {{ produit.categorie.couleur }}; color: white;">
+                                        {{ produit.categorie.nom }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ produit.quantite_stock }} {{ produit.unite_mesure }}</span>
+                                </td>
+                                <td>
+                                    {% if produit.statut_stock == 'epuise' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle me-1"></i>{{ produit.statut_stock_display }}
+                                        </span>
+                                    {% elif produit.statut_stock == 'faible' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>{{ produit.statut_stock_display }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>{{ produit.statut_stock_display }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ produit.valeur_stock|floatformat:2 }} دج
+                                </td>
+                                <td>
+                                    {% if produit.fournisseur %}
+                                        {{ produit.fournisseur.nom }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'inventory:produit_detail' produit.pk %}" class="btn btn-outline-primary" title="عرض">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'admin:inventory_produit_change' produit.pk %}" class="btn btn-outline-secondary" title="تعديل">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% if produit.a_date_expiration %}
+                                        <a href="{% url 'inventory:lots_expiring' %}?produit={{ produit.pk }}" class="btn btn-outline-info" title="الصلاحية">
+                                            <i class="fas fa-clock"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ملخص -->
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <div class="card border-left-success">
+                            <div class="card-body p-2">
+                                <div class="text-xs text-success font-weight-bold">إجمالي القيمة</div>
+                                <div class="h6 mb-0">
+                                    {{ produits|length }} منتج •
+                                    {{ total_valeur|floatformat:2 }} دج
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-left-warning">
+                            <div class="card-body p-2">
+                                <div class="text-xs text-warning font-weight-bold">منخفض المخزون</div>
+                                <div class="h6 mb-0">
+                                    {{ produits|length|add:-1 }} منتج
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-left-danger">
+                            <div class="card-body p-2">
+                                <div class="text-xs text-danger font-weight-bold">نفد المخزون</div>
+                                <div class="h6 mb-0">
+                                    {{ produits|length|add:-2 }} منتج
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-left-info">
+                            <div class="card-body p-2">
+                                <div class="text-xs text-info font-weight-bold">الفئات</div>
+                                <div class="h6 mb-0">
+                                    {{ categories|length }} فئة
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">لا توجد منتجات</h5>
+                    <p class="text-muted">ابدأ بإضافة منتجات جديدة للمخزون</p>
+                    <a href="{% url 'admin:inventory_produit_add' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>إضافة منتج جديد
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+.border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+.border-left-danger { border-left: 0.25rem solid #e74a3b !important; }
+.border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+
+.shadow { box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important; }
+.card { border: none; border-radius: 0.35rem; }
+
+.table-hover tbody tr:hover { background-color: rgba(0,0,0,.075); }
+</style>
+{% endblock %}

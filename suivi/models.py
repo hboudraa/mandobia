@@ -27,6 +27,68 @@ STATUT_CHOICES = [
 ]
 
 
+class Tache(models.Model):
+    nom         = models.CharField('اسم المهمة', max_length=200, unique=True)
+    description = models.TextField('الوصف', blank=True)
+    ordre       = models.PositiveIntegerField('الترتيب', default=0)
+    actif       = models.BooleanField('نشط', default=True)
+    cree_le     = models.DateTimeField('تاريخ الإنشاء', auto_now_add=True)
+
+    class Meta:
+        verbose_name        = 'مهمة'
+        verbose_name_plural = 'المهام'
+        ordering            = ['ordre', 'nom']
+
+    def __str__(self):
+        return self.nom
+
+
+class SuiviTache(models.Model):
+    baldiya     = models.ForeignKey('SuiviBaldiya', on_delete=models.CASCADE, verbose_name='البلدية', related_name='taches_suivi')
+    tache       = models.ForeignKey(Tache, on_delete=models.CASCADE, verbose_name='المهمة')
+    statut      = models.CharField('الحالة', max_length=20, choices=STATUT_CHOICES, default='en_attente')
+    attribue_a  = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name='مسند إلى', related_name='taches_suivi'
+    )
+    remarque    = models.TextField('الملاحظة', blank=True)
+    date_debut  = models.DateField('تاريخ البداية', null=True, blank=True)
+    date_fin    = models.DateField('تاريخ الانتهاء', null=True, blank=True)
+    modifie_par = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='modifications_taches', verbose_name='آخر تعديل بواسطة'
+    )
+    modifie_le  = models.DateTimeField('تاريخ آخر تعديل', auto_now=True)
+    cree_le     = models.DateTimeField('تاريخ الإنشاء', auto_now_add=True)
+
+    class Meta:
+        verbose_name        = 'متابعة مهمة'
+        verbose_name_plural = 'متابعة المهام'
+        ordering            = ['tache__ordre', 'cree_le']
+        unique_together     = ['baldiya', 'tache']
+
+    def __str__(self):
+        return f"{self.baldiya.get_commune_display()} — {self.tache.nom}"
+
+    def statut_color(self):
+        return {
+            'en_attente': 'secondary',
+            'contacte':   'info',
+            'en_cours':   'warning',
+            'termine':    'success',
+            'probleme':   'danger',
+        }.get(self.statut, 'secondary')
+
+    def statut_icon(self):
+        return {
+            'en_attente': 'hourglass',
+            'contacte':   'telephone-fill',
+            'en_cours':   'arrow-repeat',
+            'termine':    'check-circle-fill',
+            'probleme':   'exclamation-triangle-fill',
+        }.get(self.statut, 'circle')
+
+
 class SuiviBaldiya(models.Model):
     commune      = models.CharField('البلدية', max_length=4, choices=COMMUNE_CHOICES, unique=True)
     statut       = models.CharField('الحالة', max_length=20, choices=STATUT_CHOICES, default='en_attente')

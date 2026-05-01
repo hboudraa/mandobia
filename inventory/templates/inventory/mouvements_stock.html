@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}حركات المخزون - إدارة المخزون{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-exchange-alt text-primary me-2"></i>
+                    حركات المخزون
+                </h1>
+                <div>
+                    <a href="{% url 'inventory:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-tachometer-alt me-1"></i>لوحة التحكم
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- فلاتر البحث -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter me-1"></i>
+                فلاتر البحث
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="produit" class="form-label">المنتج</label>
+                    <select name="produit" id="produit" class="form-select">
+                        <option value="">جميع المنتجات</option>
+                        {% for produit in produits %}
+                        <option value="{{ produit.pk }}" {% if filters.produit == produit.pk|stringformat:'s' %}selected{% endif %}>
+                            {{ produit.nom }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="type_mouvement" class="form-label">نوع العملية</label>
+                    <select name="type_mouvement" id="type_mouvement" class="form-select">
+                        <option value="">الكل</option>
+                        <option value="entree" {% if filters.type_mouvement == 'entree' %}selected{% endif %}>دخول</option>
+                        <option value="sortie" {% if filters.type_mouvement == 'sortie' %}selected{% endif %}>خروج</option>
+                        <option value="ajustement" {% if filters.type_mouvement == 'ajustement' %}selected{% endif %}>تصحيح</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="date_debut" class="form-label">من التاريخ</label>
+                    <input type="date" name="date_debut" id="date_debut" class="form-control" value="{{ filters.date_debut }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="date_fin" class="form-label">إلى التاريخ</label>
+                    <input type="date" name="date_fin" id="date_fin" class="form-control" value="{{ filters.date_fin }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>بحث
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- قائمة الحركات -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-1"></i>
+                الحركات ({{ mouvements|length }})
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if mouvements %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>المنتج</th>
+                                <th>النوع</th>
+                                <th>الكمية</th>
+                                <th>الوحدة</th>
+                                <th>القيمة</th>
+                                <th>المرجع</th>
+                                <th>من طرف</th>
+                                <th>الملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mouvement in mouvements %}
+                            <tr>
+                                <td>{{ mouvement.date_mouvement|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <strong>
+                                        {% if mouvement.produit %}
+                                            <a href="{% url 'inventory:produit_detail' mouvement.produit.pk %}" class="text-decoration-none">
+                                                {{ mouvement.produit.nom }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </strong>
+                                </td>
+                                <td>
+                                    {% if mouvement.type_mouvement == 'entree' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-arrow-down me-1"></i>دخول
+                                        </span>
+                                    {% elif mouvement.type_mouvement == 'sortie' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-arrow-up me-1"></i>خروج
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-exchange-alt me-1"></i>تصحيح
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ mouvement.quantite }}</td>
+                                <td>
+                                    {% if mouvement.produit %}
+                                        {{ mouvement.produit.unite_mesure }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ mouvement.valeur_totale|floatformat:2 }} دج</td>
+                                <td>
+                                    {% if mouvement.reference %}
+                                        <code>{{ mouvement.reference }}</code>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if mouvement.effectue_par %}
+                                        {{ mouvement.effectue_par.get_full_name|default:mouvement.effectue_par.username }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if mouvement.notes %}
+                                        <small class="text-muted">{{ mouvement.notes|truncatechars:30 }}</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ملخص الإحصائيات -->
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <div class="card border-left-success">
+                            <div class="card-body p-2">
+                                <div class="text-xs text-success font-weight-bold">إجمالي الدخول</div>
+                                <div class="h6 mb-0">
+                                    {{ stats.total_entrees|default:0 }} وحدة
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-left-danger">
+                            <div class="card-body p-2">
+                                <div class="text-xs text-danger font-weight-bold">إجمالي الخروج</div>
+                                <div class="h6 mb-0">
+                                    {{ stats.total_sorties|default:0 }} وحدة
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-left-info">
+                            <div class="card-body p-2">
+                                <div class="text-xs text-info font-weight-bold">القيمة الإجمالية</div>
+                                <div class="h6 mb-0">
+                                    {{ stats.valeur_totale|default:0|floatformat:2 }} دج
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-left-warning">
+                            <div class="card-body p-2">
+                                <div class="text-xs text-warning font-weight-bold">عدد العمليات</div>
+                                <div class="h6 mb-0">
+                                    {{ mouvements|length }} عملية
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">لا توجد حركات</h5>
+                    <p class="text-muted">لم تتم أي حركات للمخزون أو لا توجد نتائج للفلاتر المختارة</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+.border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+.border-left-danger { border-left: 0.25rem solid #e74a3b !important; }
+.border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+
+.shadow { box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important; }
+.card { border: none; border-radius: 0.35rem; }
+
+.table-hover tbody tr:hover { background-color: rgba(0,0,0,.075); }
+</style>
+{% endblock %}
+

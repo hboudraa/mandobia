@@ -41,11 +41,12 @@ SEXE_CHOICES = [
 ]
 
 CATEGORIE_CHOICES = [
-    ('mandoub', 'مندوب'),
+    ('mandoub', 'مندوب ولائي'),
+    ('mandoub_b', 'مندوب بلدي'),
     ('ouvrier', 'عامل مندوبية'),
     ('charge_application', 'مكلف بالتطبيقة'),
     ('SG','أمين عام'),
-    ('responsable', 'مسؤول / إداري'),
+    ('responsable', 'مسخرون'),
     ('a_disposition','تحت التصرف'),
 ]
 

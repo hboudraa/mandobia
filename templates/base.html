@@ -22,8 +22,27 @@
     top: 0; right: 0;
     z-index: 1000;
     overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: -3px 0 15px rgba(0,0,0,0.2);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
   }
+
+  /* Scrollbar styling */
+  .sidebar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+  }
+  .sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.3);
+  }
+
   .sidebar-brand {
     background: rgba(255,255,255,0.1);
     padding: 20px 18px;
@@ -46,6 +65,44 @@
     color: #fff;
   }
   .sidebar .nav-link i { font-size: 16px; width: 22px; }
+
+  /* Collapse button styling */
+  .sidebar button[data-bs-toggle="collapse"] {
+    padding: 10px 18px !important;
+    border-radius: 8px;
+    margin: 2px 10px;
+    transition: all 0.2s;
+  }
+  .sidebar button[data-bs-toggle="collapse"]:hover {
+    background: rgba(255,255,255,0.15) !important;
+  }
+  .sidebar button[data-bs-toggle="collapse"][aria-expanded="true"] {
+    background: rgba(255,255,255,0.15) !important;
+    color: #fff !important;
+  }
+  .sidebar button[data-bs-toggle="collapse"] i:last-child {
+    transition: transform 0.3s ease;
+    display: inline-block;
+  }
+  .sidebar button[data-bs-toggle="collapse"][aria-expanded="true"] i:last-child {
+    transform: rotate(-180deg);
+  }
+
+  /* Collapse items styling */
+  .sidebar .collapse a.nav-link {
+    color: rgba(255,255,255,0.65);
+    margin: 0;
+    padding: 8px 12px 8px 20px !important;
+  }
+  .sidebar .collapse a.nav-link:hover {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.9);
+  }
+  .sidebar .collapse a.nav-link.active {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border-radius: 6px;
+  }
 
   .sidebar-section {
     font-size: 10px;
@@ -139,19 +196,57 @@
     <a href="{% url 'accueil' %}" class="nav-link {% if request.resolver_match.url_name == 'accueil' %}active{% endif %}">
       <i class="bi bi-grid-fill me-1"></i> لوحة التحكم
     </a>
-    <a href="{% url 'suivi:tableau_bord' %}" class="nav-link {% if 'suivi' in request.resolver_match.namespace %}active{% endif %}">
-      <i class="bi bi-kanban-fill me-1"></i> متابعة بلديات بجاية
+
+    <div class="sidebar-section">متابعة بلديات بجاية</div>
+    <a href="{% url 'suivi:tableau_bord' %}" class="nav-link {% if 'suivi' in request.resolver_match.namespace and 'taches' not in request.resolver_match.url_name and request.resolver_match.url_name != 'gestion_taches' and request.resolver_match.url_name != 'rapport_taches' %}active{% endif %}">
+      <i class="bi bi-grid-fill me-1"></i> لوحة التحكم
     </a>
-    <a href="{% url 'review:dashboard' %}" class="nav-link {% if 'review' in request.resolver_match.namespace %}active{% endif %}">
-      <i class="bi bi-file-earmark-chart me-1"></i> المراجعة الدورية
+    {% if request.user.is_superuser %}
+    <a href="{% url 'suivi:gestion_taches' %}" class="nav-link {% if request.resolver_match.url_name == 'gestion_taches' %}active{% endif %}">
+      <i class="bi bi-gear me-1"></i> إدارة المهام
     </a>
+    {% endif %}
+
+    <div class="sidebar-section mt-3">إدارة المخزون</div>
+    <!-- Inventory Dropdown -->
+    <button class="nav-link w-100 text-start d-flex align-items-center justify-content-between" type="button" data-bs-toggle="collapse" data-bs-target="#inventoryMenu" aria-expanded="{% if 'inventory' in request.resolver_match.namespace %}true{% else %}false{% endif %}" style="border: none; background: none; color: inherit;">
+      <span>
+        <i class="bi bi-box2-fill me-1"></i> القائمة الرئيسية
+      </span>
+      <i class="bi bi-chevron-down" style="font-size: 12px;"></i>
+    </button>
+    <div class="collapse {% if 'inventory' in request.resolver_match.namespace %}show{% endif %}" id="inventoryMenu">
+      <div class="ps-3 pe-2">
+        <a href="{% url 'inventory:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" style="padding: 8px 12px; font-size: 13px;">
+          <i class="bi bi-speedometer me-2" style="font-size: 14px;"></i> لوحة التحكم
+        </a>
+        <a href="{% url 'inventory:produits_list' %}" class="nav-link" style="padding: 8px 12px; font-size: 13px;">
+          <i class="bi bi-boxes me-2" style="font-size: 14px;"></i> المنتجات
+        </a>
+        <a href="{% url 'inventory:lots_expiring' %}" class="nav-link" style="padding: 8px 12px; font-size: 13px;">
+          <i class="bi bi-clock-history me-2" style="font-size: 14px;"></i> مراقبة الصلاحية
+        </a>
+        <a href="{% url 'inventory:mouvements_stock' %}" class="nav-link" style="padding: 8px 12px; font-size: 13px;">
+          <i class="bi bi-arrow-left-right me-2" style="font-size: 14px;"></i> حركات المخزون
+        </a>
+        <a href="{% url 'inventory:alertes_stock' %}" class="nav-link" style="padding: 8px 12px; font-size: 13px;">
+          <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 14px;"></i> التنبيهات
+        </a>
+        <a href="{% url 'inventory:rapport_inventaire' %}" class="nav-link" style="padding: 8px 12px; font-size: 13px;">
+          <i class="bi bi-file-earmark-text-fill me-2" style="font-size: 14px;"></i> تقرير الجرد
+        </a>
+      </div>
+    </div>
 
     <div class="sidebar-section">إدارة الأفراد</div>
     <a href="{% url 'liste_personnes' %}" class="nav-link {% if 'personne' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-people-fill me-1"></i> كل الأفراد
     </a>
     <a href="{% url 'liste_personnes' %}?categorie=mandoub" class="nav-link">
-      <i class="bi bi-person-badge me-1"></i> المندوبون
+      <i class="bi bi-person-badge me-1"></i> المندوبون الولائيين
+    </a>
+    <a href="{% url 'liste_personnes' %}?categorie=mandoub" class="nav-link">
+      <i class="bi bi-person-badge me-1"></i> المندوبون البلديون
     </a>
     <a href="{% url 'liste_personnes' %}?categorie=ouvrier" class="nav-link">
       <i class="bi bi-person-gear me-1"></i> عمال المندوبية

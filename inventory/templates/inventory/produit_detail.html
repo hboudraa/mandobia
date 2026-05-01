@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ produit.nom }} - تفاصيل المنتج{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-box text-primary me-2"></i>
+                    {{ produit.nom }}
+                </h1>
+                <div>
+                    <a href="{% url 'inventory:produits_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-1"></i>المنتجات
+                    </a>
+                    <a href="{% url 'inventory:dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-tachometer-alt me-1"></i>لوحة التحكم
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- معلومات المنتج الأساسية -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-1"></i>
+                        معلومات المنتج
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">اسم المنتج</label>
+                                <p class="form-control-plaintext">{{ produit.nom }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">رمز المنتج</label>
+                                <p class="form-control-plaintext">
+                                    <code>{{ produit.code_produit }}</code>
+                                </p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">الفئة</label>
+                                <p class="form-control-plaintext">
+                                    <span class="badge" style="background-color: {{ produit.categorie.couleur }};">
+                                        {{ produit.categorie.nom }}
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">المورد</label>
+                                <p class="form-control-plaintext">
+                                    {% if produit.fournisseur %}
+                                        {{ produit.fournisseur.nom }}
+                                    {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">وحدة القياس</label>
+                                <p class="form-control-plaintext">{{ produit.get_unite_mesure_display }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">سعر الشراء</label>
+                                <p class="form-control-plaintext">{{ produit.prix_achat }} دج</p>
+                            </div>
+                            {% if produit.prix_vente %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">سعر البيع</label>
+                                <p class="form-control-plaintext">{{ produit.prix_vente }} دج</p>
+                            </div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">مكان التخزين</label>
+                                <p class="form-control-plaintext">
+                                    {% if produit.emplacement %}
+                                        {{ produit.emplacement }}
+                                    {% else %}
+                                        <span class="text-muted">غير محدد</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% if produit.description %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">الوصف</label>
+                        <p class="form-control-plaintext">{{ produit.description }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- إحصائيات المخزون -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        إحصائيات المخزون
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <div class="h4 mb-0 text-primary">{{ produit.quantite_stock }}</div>
+                                <small class="text-muted">الكمية الحالية</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <div class="h4 mb-0 text-warning">{{ produit.seuil_alerte }}</div>
+                                <small class="text-muted">عتبة التنبيه</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <div class="h4 mb-0 text-info">{{ produit.valeur_stock|floatformat:2 }}</div>
+                                <small class="text-muted">القيمة (دج)</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-3">
+                                <div class="h4 mb-0 text-secondary">{{ stats.total_lots }}</div>
+                                <small class="text-muted">عدد الدفعات</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <span class="badge fs-6 {% if produit.statut_stock == 'epuise' %}bg-danger{% elif produit.statut_stock == 'faible' %}bg-warning{% else %}bg-success{% endif %}">
+                            {{ produit.statut_stock_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إجراءات سريعة -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-bolt me-1"></i>
+                        إجراءات سريعة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admin:inventory_produit_change' produit.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit me-1"></i>تعديل المنتج
+                        </a>
+                        <a href="{% url 'admin:inventory_lot_add' %}?produit={{ produit.pk }}" class="btn btn-outline-success">
+                            <i class="fas fa-plus me-1"></i>إضافة دفعة
+                        </a>
+                        <a href="{% url 'inventory:mouvements_stock' %}?produit={{ produit.pk }}" class="btn btn-outline-info">
+                            <i class="fas fa-history me-1"></i>حركات المخزون
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الدفعات -->
+    {% if lots %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-cubes me-1"></i>
+                        الدفعات ({{ stats.total_lots }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>رقم الدفعة</th>
+                                    <th>تاريخ التصنيع</th>
+                                    <th>تاريخ الانتهاء</th>
+                                    <th>الأيام المتبقية</th>
+                                    <th>الكمية الأولية</th>
+                                    <th>الكمية المتبقية</th>
+                                    <th>القيمة المتبقية</th>
+                                    <th>حالة الصلاحية</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lot in lots %}
+                                <tr class="{% if lot.statut_expiration == 'expire' %}table-danger{% elif lot.statut_expiration == 'critique' %}table-danger{% elif lot.statut_expiration == 'attention' %}table-warning{% else %}table-success{% endif %}">
+                                    <td><code>{{ lot.numero_lot }}</code></td>
+                                    <td>
+                                        {% if lot.date_fabrication %}
+                                            {{ lot.date_fabrication|date:"d/m/Y" }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ lot.date_expiration|date:"d/m/Y" }}</td>
+                                    <td>
+                                        {% if lot.jours_restants < 0 %}
+                                            <span class="badge bg-danger">انتهت منذ {{ lot.jours_restants_abs }} يوم</span>
+                                        {% elif lot.jours_restants == 0 %}
+                                            <span class="badge bg-danger">تنتهي اليوم</span>
+                                        {% elif lot.jours_restants == 1 %}
+                                            <span class="badge bg-danger">يوم واحد متبقي</span>
+                                        {% else %}
+                                            <span class="badge bg-{% if lot.jours_restants <= 7 %}danger{% elif lot.jours_restants <= 30 %}warning{% else %}info{% endif %}">
+                                                {{ lot.jours_restants }} يوم
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ lot.quantite_initiale }} {{ produit.unite_mesure }}</td>
+                                    <td><strong>{{ lot.quantite_restante }} {{ produit.unite_mesure }}</strong></td>
+                                    <td>{{ lot.valeur_restante|floatformat:2 }} دج</td>
+                                    <td>
+                                        {% if lot.statut_expiration == 'expire' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times-circle me-1"></i>{{ lot.statut_expiration_display }}
+                                            </span>
+                                        {% elif lot.statut_expiration == 'critique' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>{{ lot.statut_expiration_display }}
+                                            </span>
+                                        {% elif lot.statut_expiration == 'attention' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock me-1"></i>{{ lot.statut_expiration_display }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>{{ lot.statut_expiration_display }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'admin:inventory_lot_change' lot.pk %}" class="btn btn-outline-secondary" title="تعديل">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'inventory:mouvements_stock' %}?lot={{ lot.pk }}" class="btn btn-outline-info" title="الحركات">
+                                                <i class="fas fa-history"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- ملخص الدفعات -->
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <div class="card border-left-primary">
+                                <div class="card-body p-2 text-center">
+                                    <div class="text-xs text-primary font-weight-bold">الكمية الإجمالية</div>
+                                    <div class="h5 mb-0 text-primary">{{ stats.quantite_totale|floatformat:2 }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-left-success">
+                                <div class="card-body p-2 text-center">
+                                    <div class="text-xs text-success font-weight-bold">القيمة الإجمالية</div>
+                                    <div class="h5 mb-0 text-success">{{ stats.valeur_totale|floatformat:2 }} دج</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-left-warning">
+                                <div class="card-body p-2 text-center">
+                                    <div class="text-xs text-warning font-weight-bold">دفعات صالحة</div>
+                                    <div class="h5 mb-0 text-warning">{{ lots|length }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-left-danger">
+                                <div class="card-body p-2 text-center">
+                                    <div class="text-xs text-danger font-weight-bold">دفعات منتهية</div>
+                                    <div class="h5 mb-0 text-danger">
+                                        {% with expired_count=produit.lots.filter(date_expiration__lt.today, quantite_restante__gt=0)|length %}
+                                            {{ expired_count }}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- آخر الحركات -->
+    {% if mouvements %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-history me-1"></i>
+                        آخر الحركات ({{ mouvements|length }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>النوع</th>
+                                    <th>السبب</th>
+                                    <th>الكمية</th>
+                                    <th>السعر الوحدي</th>
+                                    <th>القيمة الإجمالية</th>
+                                    <th>الرقم المرجعي</th>
+                                    <th>المستخدم</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mouvement in mouvements %}
+                                <tr>
+                                    <td>{{ mouvement.date_mouvement|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        {% if mouvement.type_mouvement == 'entree' %}
+                                            <span class="badge bg-success">{{ mouvement.get_type_mouvement_display }}</span>
+                                        {% elif mouvement.type_mouvement == 'sortie' %}
+                                            <span class="badge bg-danger">{{ mouvement.get_type_mouvement_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{{ mouvement.get_type_mouvement_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ mouvement.get_motif_display }}</td>
+                                    <td>
+                                        {% if mouvement.type_mouvement == 'entree' %}
+                                            <span class="text-success">+{{ mouvement.quantite }}</span>
+                                        {% elif mouvement.type_mouvement == 'sortie' %}
+                                            <span class="text-danger">-{{ mouvement.quantite }}</span>
+                                        {% else %}
+                                            <span class="text-warning">{{ mouvement.quantite }}</span>
+                                        {% endif %}
+                                        {{ produit.unite_mesure }}
+                                    </td>
+                                    <td>{{ mouvement.prix_unitaire|floatformat:2 }} دج</td>
+                                    <td><strong>{{ mouvement.valeur_totale|floatformat:2 }} دج</strong></td>
+                                    <td>
+                                        {% if mouvement.reference %}
+                                            <small><code>{{ mouvement.reference }}</code></small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if mouvement.effectue_par %}
+                                            {{ mouvement.effectue_par.get_full_name }}
+                                        {% else %}
+                                            <span class="text-muted">النظام</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'inventory:mouvements_stock' %}?produit={{ produit.pk }}" class="btn btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-1"></i>عرض جميع الحركات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.border-left-primary { border-left: 0.25rem solid #4e73df !important; }
+.border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+.border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+.border-left-danger { border-left: 0.25rem solid #e74a3b !important; }
+.border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+
+.shadow { box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important; }
+.card { border: none; border-radius: 0.35rem; }
+
+.table-hover tbody tr:hover { background-color: rgba(0,0,0,.075); }
+
+.table-danger { background-color: rgba(220, 53, 69, 0.1); }
+.table-warning { background-color: rgba(255, 193, 7, 0.1); }
+.table-success { background-color: rgba(40, 167, 69, 0.1); }
+
+.badge { font-size: 0.75em; }
+</style>
+{% endblock %}

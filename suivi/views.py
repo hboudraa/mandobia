@@ -4,9 +4,10 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.db import models
 import json, io
 
-from .models import SuiviBaldiya, COMMUNE_CHOICES, STATUT_CHOICES
+from .models import SuiviBaldiya, COMMUNE_CHOICES, STATUT_CHOICES, Tache, SuiviTache
 from .forms import SuiviBaldiyaForm
 
 
@@ -44,14 +45,34 @@ def tableau_bord(request):
     from django.contrib.auth.models import User
     utilisateurs = User.objects.filter(is_active=True).order_by('username')
 
+    # إضافة إحصائيات المهام لكل بلدية
+    communes_with_tasks = []
+    for commune in communes:
+        # الحصول على إحصائيات المهام لهذه البلدية
+        task_stats = SuiviTache.objects.filter(baldiya=commune).aggregate(
+            total=models.Count('id'),
+            termine=models.Count('id', filter=models.Q(statut='termine')),
+            en_cours=models.Count('id', filter=models.Q(statut='en_cours')),
+            probleme=models.Count('id', filter=models.Q(statut='probleme')),
+        )
+        task_stats['en_attente'] = task_stats['total'] - task_stats['termine'] - task_stats['en_cours'] - task_stats['probleme']
+
+        communes_with_tasks.append({
+            'commune': commune,
+            'task_stats': task_stats,
+        })
+
+    statuts_json = json.dumps(list(STATUT_CHOICES))
+
     return render(request, 'suivi/tableau_bord.html', {
-        'communes':       communes,
-        'stats':          stats,
-        'statuts':        STATUT_CHOICES,
-        'utilisateurs':   utilisateurs,
-        'filtre_statut':  filtre_statut,
-        'filtre_user':    filtre_user,
-        'filtre_search':  filtre_search,
+        'communes': communes_with_tasks,
+        'stats': stats,
+        'statuts': STATUT_CHOICES,
+        'statuts_json': statuts_json,
+        'utilisateurs': utilisateurs,
+        'filtre_statut': filtre_statut,
+        'filtre_user': filtre_user,
+        'filtre_search': filtre_search,
     })
 
 
@@ -288,3 +309,273 @@ def exporter_excel(request):
     )
     response['Content-Disposition'] = 'attachment; filename="متابعة_بلديات_بجاية.xlsx"'
     return response
+
+
+@login_required
+def gestion_taches(request):
+    """إدارة المهام - عرض وإضافة المهام"""
+    taches = Tache.objects.filter(actif=True).order_by('ordre')
+
+    if request.method == 'POST':
+        nom = request.POST.get('nom', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        if nom:
+            ordre_max = Tache.objects.aggregate(max_ordre=models.Max('ordre'))['max_ordre'] or 0
+            Tache.objects.create(
+                nom=nom,
+                description=description,
+                ordre=ordre_max + 1
+            )
+            messages.success(request, f'تم إضافة المهمة "{nom}" بنجاح ✓')
+            return redirect('suivi:gestion_taches')
+        else:
+            messages.error(request, 'يرجى إدخال اسم المهمة')
+
+    return render(request, 'suivi/gestion_taches.html', {
+        'taches': taches,
+    })
+
+
+@login_required
+@require_POST
+def supprimer_tache(request, pk):
+    if not request.user.is_superuser:
+        return JsonResponse({'ok': False, 'msg': 'غير مصرح لك بهذا الإجراء'}, status=403)
+
+    tache = get_object_or_404(Tache, pk=pk)
+    nom = tache.nom
+    tache.delete()
+
+    messages.success(request, f'تم حذف المهمة "{nom}" بنجاح')
+    return JsonResponse({'ok': True})
+
+
+@login_required
+def suivi_taches_commune(request, commune_pk):
+    """متابعة المهام للبلدية المحددة"""
+    commune = get_object_or_404(SuiviBaldiya, pk=commune_pk)
+    taches = Tache.objects.filter(actif=True).order_by('ordre')
+
+    # الحصول على متابعة المهام الموجودة أو إنشاؤها
+    suivi_taches = []
+    for tache in taches:
+        suivi, created = SuiviTache.objects.get_or_create(
+            baldiya=commune,
+            tache=tache,
+            defaults={'statut': 'en_attente'}
+        )
+        suivi_taches.append(suivi)
+
+    if request.method == 'POST':
+        tache_id = request.POST.get('tache_id')
+        statut = request.POST.get('statut')
+        remarque = request.POST.get('remarque', '').strip()
+
+        if tache_id and statut:
+            suivi = get_object_or_404(SuiviTache, baldiya=commune, tache_id=tache_id)
+
+            # التحقق من الصلاحيات
+            if (suivi.attribue_a and suivi.attribue_a != request.user and not request.user.is_superuser):
+                messages.error(request, 'غير مصرح لك بتعديل هذه المهمة')
+                return redirect('suivi:suivi_taches_commune', commune_pk=commune.pk)
+
+            suivi.statut = statut
+            suivi.remarque = remarque
+            suivi.modifie_par = request.user
+
+            # تحديث تاريخ البداية والانتهاء
+            if statut in ['en_cours', 'termine'] and not suivi.date_debut:
+                suivi.date_debut = timezone.now().date()
+            if statut == 'termine' and not suivi.date_fin:
+                suivi.date_fin = timezone.now().date()
+
+            suivi.save()
+            messages.success(request, f'تم تحديث مهمة "{suivi.tache.nom}" بنجاح ✓')
+
+        return redirect('suivi:suivi_taches_commune', commune_pk=commune.pk)
+
+    return render(request, 'suivi/suivi_taches_commune.html', {
+        'commune': commune,
+        'suivi_taches': suivi_taches,
+        'statuts': STATUT_CHOICES,
+    })
+
+
+@login_required
+@require_POST
+def assigner_tache(request, commune_pk, tache_pk):
+    commune = get_object_or_404(SuiviBaldiya, pk=commune_pk)
+    tache = get_object_or_404(Tache, pk=tache_pk)
+
+    suivi, created = SuiviTache.objects.get_or_create(
+        baldiya=commune,
+        tache=tache,
+        defaults={'statut': 'en_attente'}
+    )
+
+    data = json.loads(request.body)
+    action = data.get('action', 'claim')
+
+    if action == 'claim':
+        if suivi.attribue_a and not request.user.is_superuser:
+            return JsonResponse({
+                'ok': False,
+                'msg': f'هذه المهمة مسندة بالفعل إلى {suivi.attribue_a.username}'
+            }, status=403)
+        suivi.attribue_a = request.user
+    elif action == 'release' and (suivi.attribue_a == request.user or request.user.is_superuser):
+        suivi.attribue_a = None
+
+    suivi.modifie_par = request.user
+    suivi.save()
+
+    return JsonResponse({
+        'ok': True,
+        'attribue_a': suivi.attribue_a.username if suivi.attribue_a else None,
+    })
+
+
+@login_required
+def rapport_taches(request):
+    """تقرير شامل عن متابعة المهام"""
+    communes = SuiviBaldiya.objects.select_related('attribue_a').order_by('commune')
+    taches = Tache.objects.filter(actif=True).order_by('ordre')
+
+    # إحصائيات المهام
+    stats_taches = {}
+    for tache in taches:
+        suivi_tache = SuiviTache.objects.filter(tache=tache)
+        stats_taches[tache.id] = {
+            'tache': tache,
+            'total': suivi_tache.count(),
+            'en_attente': suivi_tache.filter(statut='en_attente').count(),
+            'en_cours': suivi_tache.filter(statut='en_cours').count(),
+            'termine': suivi_tache.filter(statut='termine').count(),
+            'probleme': suivi_tache.filter(statut='probleme').count(),
+        }
+
+    # بيانات المتابعة لكل بلدية
+    suivi_data = {}
+    for commune in communes:
+        # الحصول على جميع متابعات المهام لهذه البلدية
+        suivi_objects = SuiviTache.objects.filter(baldiya=commune).select_related('tache', 'attribue_a')
+
+        # إنشاء قائمة من المهام مع متابعاتها
+        taches_suivi = []
+        for tache in taches:
+            suivi = next((s for s in suivi_objects if s.tache_id == tache.id), None)
+            taches_suivi.append({
+                'tache': tache,
+                'suivi': suivi,
+            })
+
+        suivi_data[commune.pk] = {
+            'commune': commune,
+            'taches_suivi': taches_suivi,
+        }
+
+    return render(request, 'suivi/rapport_taches.html', {
+        'taches': taches,
+        'suivi_data': suivi_data,
+        'stats_taches': stats_taches,
+        'statuts': STATUT_CHOICES,
+    })
+
+
+@login_required
+def get_commune_tasks_api(request, commune_pk):
+    """API للحصول على مهام البلدية بتنسيق JSON"""
+    commune = get_object_or_404(SuiviBaldiya, pk=commune_pk)
+    taches = Tache.objects.filter(actif=True).order_by('ordre')
+
+    tasks_data = []
+    for tache in taches:
+        suivi, created = SuiviTache.objects.get_or_create(
+            baldiya=commune,
+            tache=tache,
+            defaults={'statut': 'en_attente'}
+        )
+
+        statut_colors = {
+            'en_attente': 'secondary',
+            'en_cours': 'warning',
+            'termine': 'success',
+            'probleme': 'danger'
+        }
+
+        tasks_data.append({
+            'id': suivi.id,
+            'titre': tache.nom,
+            'description': tache.description,
+            'statut': suivi.get_statut_display(),
+            'statut_code': suivi.statut,
+            'statut_color': statut_colors.get(suivi.statut, 'secondary'),
+            'assigned': suivi.attribue_a.username if suivi.attribue_a else None,
+            'date_debut': suivi.date_debut.strftime('%d/%m/%Y') if suivi.date_debut else '-',
+            'date_fin': suivi.date_fin.strftime('%d/%m/%Y') if suivi.date_fin else '-',
+            'remarque': suivi.remarque or '',
+        })
+
+    return JsonResponse({'tasks': tasks_data})
+
+
+@login_required
+@require_POST
+def update_task_status(request, commune_pk, task_pk):
+    """API لتحديث حالة المهمة"""
+    commune = get_object_or_404(SuiviBaldiya, pk=commune_pk)
+    suivi = get_object_or_404(SuiviTache, baldiya=commune, pk=task_pk)
+
+    # التحقق من الصلاحيات
+    if (suivi.attribue_a and suivi.attribue_a != request.user and not request.user.is_superuser):
+        return JsonResponse({'ok': False, 'msg': 'غير مصرح لك بتعديل هذه المهمة'}, status=403)
+
+    data = json.loads(request.body)
+    statut = data.get('statut')
+    remarque = data.get('remarque', '').strip()
+
+    if statut not in dict(STATUT_CHOICES):
+        return JsonResponse({'ok': False, 'msg': 'حالة غير صالحة'}, status=400)
+
+    suivi.statut = statut
+    suivi.remarque = remarque
+    suivi.modifie_par = request.user
+
+    # تحديث التواريخ
+    if statut in ['en_cours', 'termine'] and not suivi.date_debut:
+        suivi.date_debut = timezone.now().date()
+    if statut == 'termine' and not suivi.date_fin:
+        suivi.date_fin = timezone.now().date()
+
+    suivi.save()
+
+    statut_colors = {
+        'en_attente': 'secondary',
+        'en_cours': 'warning',
+        'termine': 'success',
+        'probleme': 'danger'
+    }
+
+    return JsonResponse({
+        'ok': True,
+        'statut': suivi.get_statut_display(),
+        'statut_color': statut_colors.get(suivi.statut, 'secondary'),
+        'date_debut': suivi.date_debut.strftime('%d/%m/%Y') if suivi.date_debut else '-',
+        'date_fin': suivi.date_fin.strftime('%d/%m/%Y') if suivi.date_fin else '-',
+    })
+
+
+@login_required
+@require_POST
+def delete_task(request, commune_pk, task_pk):
+    """API لحذف متابعة المهمة"""
+    if not request.user.is_superuser:
+        return JsonResponse({'ok': False, 'msg': 'غير مصرح لك بهذا الإجراء'}, status=403)
+
+    commune = get_object_or_404(SuiviBaldiya, pk=commune_pk)
+    suivi = get_object_or_404(SuiviTache, baldiya=commune, pk=task_pk)
+
+    suivi.delete()
+
+    return JsonResponse({'ok': True})

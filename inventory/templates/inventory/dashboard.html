@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إدارة المخزون - لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-boxes text-primary me-2"></i>
+                    إدارة المخزون
+                </h1>
+                <div>
+                    <a href="{% url 'inventory:produits_list' %}" class="btn btn-primary">
+                        <i class="fas fa-list me-1"></i>المنتجات
+                    </a>
+                    <a href="{% url 'inventory:rapport_inventaire' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-chart-bar me-1"></i>تقرير الجرد
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إحصائيات عامة -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                إجمالي المنتجات
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.total_produits }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                قيمة المخزون الإجمالية
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.valeur_totale_stock|floatformat:2 }} دج
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                الفئات
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.total_categories }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tags fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                الموردين
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.total_fournisseurs }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-truck fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- حالات المخزون -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-1"></i>
+                        حالات المخزون
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="text-center">
+                                <span class="badge bg-success fs-4 p-3">{{ stock_status.normal }}</span>
+                                <p class="mt-2 mb-0">مخزون طبيعي</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="text-center">
+                                <span class="badge bg-warning fs-4 p-3">{{ stock_status.faible }}</span>
+                                <p class="mt-2 mb-0">مخزون منخفض</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="text-center">
+                                <span class="badge bg-danger fs-4 p-3">{{ stock_status.epuise }}</span>
+                                <p class="mt-2 mb-0">نفد المخزون</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        تنبيهات الصلاحية
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-danger me-2">{{ expiration_alerts.expire }}</span>
+                        <span>منتهية الصلاحية</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-warning me-2">{{ expiration_alerts.critique }}</span>
+                        <span>تنتهي خلال أسبوع</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-info me-2">{{ expiration_alerts.attention }}</span>
+                        <span>تنتهي خلال شهر</span>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'inventory:lots_expiring' %}" class="btn btn-sm btn-outline-danger">
+                            عرض التفاصيل
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- المنتجات الأكثر نقصاً -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-exclamation-circle me-1"></i>
+                        المنتجات الأكثر نقصاً
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if produits_faibles %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>المنتج</th>
+                                        <th>الكمية</th>
+                                        <th>العتبة</th>
+                                        <th>الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for produit in produits_faibles %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'inventory:produit_detail' produit.pk %}">
+                                                {{ produit.nom }}
+                                            </a>
+                                        </td>
+                                        <td>{{ produit.quantite_stock }}</td>
+                                        <td>{{ produit.seuil_alerte }}</td>
+                                        <td>
+                                            <span class="badge bg-warning">منخفض</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">لا توجد منتجات منخفضة المخزون</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- المنتجات المنتهية الصلاحية قريباً -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-clock me-1"></i>
+                        الصلاحية المنتهية قريباً
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if lots_expiring_soon %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>المنتج</th>
+                                        <th>رقم الدفعة</th>
+                                        <th>تاريخ الانتهاء</th>
+                                        <th>الأيام المتبقية</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for lot in lots_expiring_soon %}
+                                    <tr>
+                                        <td>{{ lot.produit.nom }}</td>
+                                        <td>{{ lot.numero_lot }}</td>
+                                        <td>{{ lot.date_expiration|date:"d/m/Y" }}</td>
+                                        <td>
+                                            {% if lot.jours_restants < 0 %}
+                                                <span class="badge bg-danger">انتهت</span>
+                                            {% elif lot.jours_restants <= 7 %}
+                                                <span class="badge bg-danger">{{ lot.jours_restants }} يوم</span>
+                                            {% elif lot.jours_restants <= 30 %}
+                                                <span class="badge bg-warning">{{ lot.jours_restants }} يوم</span>
+                                            {% else %}
+                                                <span class="badge bg-info">{{ lot.jours_restants }} يوم</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">لا توجد منتجات منتهية الصلاحية قريباً</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- التنبيهات الأخيرة -->
+    {% if alertes_non_lues %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-bell me-1"></i>
+                        التنبيهات الأخيرة ({{ alertes_non_lues|length }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% for alerte in alertes_non_lues %}
+                    <div class="alert alert-{% if alerte.type_alerte == 'stock_epuise' %}danger{% elif alerte.type_alerte == 'expiration_proche' %}warning{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                        <strong>{{ alerte.produit.nom }}:</strong> {{ alerte.message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                    <div class="mt-2">
+                        <a href="{% url 'inventory:alertes_stock' %}" class="btn btn-sm btn-outline-info">
+                            عرض جميع التنبيهات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.border-left-primary { border-left: 0.25rem solid #4e73df !important; }
+.border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+.border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+.border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+.border-left-danger { border-left: 0.25rem solid #e74a3b !important; }
+
+.text-primary { color: #5a5c69 !important; }
+.text-success { color: #1cc88a !important; }
+.text-info { color: #36b9cc !important; }
+.text-warning { color: #f6c23e !important; }
+.text-danger { color: #e74a3b !important; }
+
+.shadow { box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important; }
+
+.card { border: none; border-radius: 0.35rem; }
+</style>
+{% endblock %}

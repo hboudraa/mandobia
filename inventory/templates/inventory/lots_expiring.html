@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}مراقبة الصلاحية - إدارة المخزون{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-clock text-danger me-2"></i>
+                    مراقبة الصلاحية
+                </h1>
+                <div>
+                    <a href="{% url 'inventory:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-tachometer-alt me-1"></i>لوحة التحكم
+                    </a>
+                    <a href="{% url 'inventory:produits_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-1"></i>المنتجات
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- فلاتر الفترة -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="periode" class="form-label">الفترة الزمنية (بالأيام)</label>
+                    <select name="periode" id="periode" class="form-select">
+                        <option value="7" {% if periode == '7' %}selected{% endif %}>أسبوع واحد</option>
+                        <option value="30" {% if periode == '30' or not periode %}selected{% endif %}>شهر واحد</option>
+                        <option value="90" {% if periode == '90' %}selected{% endif %}>3 أشهر</option>
+                        <option value="180" {% if periode == '180' %}selected{% endif %}>6 أشهر</option>
+                        <option value="365" {% if periode == '365' %}selected{% endif %}>سنة واحدة</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="show_expired" name="show_expired" {% if request.GET.show_expired %}checked{% endif %}>
+                        <label class="form-check-label" for="show_expired">
+                            عرض المنتجات المنتهية الصلاحية
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i>تطبيق
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- المنتجات المنتهية الصلاحية -->
+    {% if lots_expired %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-left-danger shadow">
+                <div class="card-header bg-danger text-white py-3">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        المنتجات المنتهية الصلاحية ({{ lots_expired|length }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        هذه المنتجات انتهت صلاحيتها ويجب التخلص منها فوراً أو إجراء فحوصات أمان!
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th>المنتج</th>
+                                    <th>رقم الدفعة</th>
+                                    <th>تاريخ التصنيع</th>
+                                    <th>تاريخ الانتهاء</th>
+                                    <th>الكمية المتبقية</th>
+                                    <th>المورد</th>
+                                    <th>الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lot in lots_expired %}
+                                <tr class="table-danger">
+                                    <td>
+                                        <strong>{{ lot.produit.nom }}</strong>
+                                        <br><small class="text-muted">{{ lot.produit.code_produit }}</small>
+                                    </td>
+                                    <td><code>{{ lot.numero_lot }}</code></td>
+                                    <td>
+                                        {% if lot.date_fabrication %}
+                                            {{ lot.date_fabrication|date:"d/m/Y" }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>{{ lot.date_expiration|date:"d/m/Y" }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ lot.quantite_restante }} {{ lot.produit.unite_mesure }}</span>
+                                    </td>
+                                    <td>
+                                        {% if lot.fournisseur %}
+                                            {{ lot.fournisseur.nom }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle me-1"></i>منتهية الصلاحية
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- المنتجات ستنتهي قريباً -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-clock me-1"></i>
+                        المنتجات ستنتهي صلاحيتها قريباً ({{ lots_expiring_soon|length }})
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if lots_expiring_soon %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-warning">
+                                    <tr>
+                                        <th>المنتج</th>
+                                        <th>رقم الدفعة</th>
+                                        <th>تاريخ التصنيع</th>
+                                        <th>تاريخ الانتهاء</th>
+                                        <th>الأيام المتبقية</th>
+                                        <th>الكمية المتبقية</th>
+                                        <th>المورد</th>
+                                        <th>حالة الصلاحية</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for lot in lots_expiring_soon %}
+                                    <tr class="{% if lot.jours_restants <= 7 %}table-danger{% elif lot.jours_restants <= 30 %}table-warning{% else %}table-info{% endif %}">
+                                        <td>
+                                            <strong>
+                                                <a href="{% url 'inventory:produit_detail' lot.produit.pk %}" class="text-decoration-none">
+                                                    {{ lot.produit.nom }}
+                                                </a>
+                                            </strong>
+                                            <br><small class="text-muted">{{ lot.produit.code_produit }}</small>
+                                        </td>
+                                        <td><code>{{ lot.numero_lot }}</code></td>
+                                        <td>
+                                            {% if lot.date_fabrication %}
+                                                {{ lot.date_fabrication|date:"d/m/Y" }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><strong>{{ lot.date_expiration|date:"d/m/Y" }}</strong></td>
+                                        <td>
+                                            {% if lot.jours_restants < 0 %}
+                                                <span class="badge bg-danger fs-6">
+                                                    انتهت منذ {{ lot.jours_restants_abs }} يوم
+                                                </span>
+                                            {% elif lot.jours_restants == 0 %}
+                                                <span class="badge bg-danger fs-6">
+                                                    تنتهي اليوم
+                                                </span>
+                                            {% elif lot.jours_restants == 1 %}
+                                                <span class="badge bg-danger fs-6">
+                                                    يوم واحد متبقي
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-{% if lot.jours_restants <= 7 %}danger{% elif lot.jours_restants <= 30 %}warning{% else %}info{% endif %} fs-6">
+                                                    {{ lot.jours_restants }} يوم
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ lot.quantite_restante }} {{ lot.produit.unite_mesure }}</span>
+                                        </td>
+                                        <td>
+                                            {% if lot.fournisseur %}
+                                                {{ lot.fournisseur.nom }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if lot.statut_expiration == 'expire' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times-circle me-1"></i>{{ lot.statut_expiration_display }}
+                                                </span>
+                                            {% elif lot.statut_expiration == 'critique' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>{{ lot.statut_expiration_display }}
+                                                </span>
+                                            {% elif lot.statut_expiration == 'attention' %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i>{{ lot.statut_expiration_display }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle me-1"></i>{{ lot.statut_expiration_display }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'inventory:produit_detail' lot.produit.pk %}" class="btn btn-outline-primary" title="عرض المنتج">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'admin:inventory_lot_change' lot.pk %}" class="btn btn-outline-secondary" title="تعديل الدفعة">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% if lot.jours_restants <= 7 %}
+                                                <button class="btn btn-outline-danger" title="تنبيه حرج" disabled>
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- ملخص إحصائي -->
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <div class="card border-left-danger">
+                                    <div class="card-body p-2 text-center">
+                                        <div class="text-xs text-danger font-weight-bold">حرج (أسبوع)</div>
+                                        <div class="h4 mb-0 text-danger">
+                                            {{ lots_expiring_soon|length|add:-1 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-left-warning">
+                                    <div class="card-body p-2 text-center">
+                                        <div class="text-xs text-warning font-weight-bold">تحذير (شهر)</div>
+                                        <div class="h4 mb-0 text-warning">
+                                            {{ lots_expiring_soon|length|add:-2 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-left-info">
+                                    <div class="card-body p-2 text-center">
+                                        <div class="text-xs text-info font-weight-bold">مراقبة (باقي)</div>
+                                        <div class="h4 mb-0 text-info">
+                                            {{ lots_expiring_soon|length|add:-3 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-left-success">
+                                    <div class="card-body p-2 text-center">
+                                        <div class="text-xs text-success font-weight-bold">الكمية الإجمالية</div>
+                                        <div class="h4 mb-0 text-success">
+                                            {% widthratio lots_expiring_soon|length 1 1 %} دفعة
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5 class="text-success">ممتاز!</h5>
+                            <p class="text-muted">لا توجد منتجات ستنتهي صلاحيتها في الفترة المحددة</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نصائح وإرشادات -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-lightbulb me-1"></i>
+                        نصائح وإرشادات
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-danger">
+                                <i class="fas fa-exclamation-triangle me-1"></i>المنتجات المنتهية الصلاحية:
+                            </h6>
+                            <ul class="text-muted">
+                                <li>يجب التخلص منها فوراً حسب الإجراءات الصحية</li>
+                                <li>إشعار الموردين والجهات المختصة</li>
+                                <li>تسجيل حركة خروج من المخزون</li>
+                                <li>إجراء فحوصات أمان إذا لزم الأمر</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-warning">
+                                <i class="fas fa-clock me-1"></i>المنتجات ستنتهي قريباً:
+                            </h6>
+                            <ul class="text-muted">
+                                <li>التحقق من إمكانية الاستخدام الآمن</li>
+                                <li>التخطيط للتجديد أو الاستبدال</li>
+                                <li>إشعار المستخدمين والإدارة</li>
+                                <li>مراجعة شروط التخزين</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-danger { border-left: 0.25rem solid #e74a3b !important; }
+.border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+.border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+.border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+
+.shadow { box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important; }
+.card { border: none; border-radius: 0.35rem; }
+
+.table-hover tbody tr:hover { background-color: rgba(0,0,0,.075); }
+
+.table-danger { background-color: rgba(220, 53, 69, 0.1); }
+.table-warning { background-color: rgba(255, 193, 7, 0.1); }
+.table-info { background-color: rgba(23, 162, 184, 0.1); }
+
+.badge { font-size: 0.75em; }
+</style>
+
+<script>
+// تحديث تلقائي للصفحة كل 5 دقائق للمنتجات الحرجة
+{% if lots_expired or lots_expiring_soon %}
+setTimeout(function() {
+    if (confirm('تحديث البيانات للتحقق من آخر التغييرات في الصلاحية؟')) {
+        window.location.reload();
+    }
+}, 300000); // 5 دقائق
+{% endif %}
+</script>
+{% endblock %}

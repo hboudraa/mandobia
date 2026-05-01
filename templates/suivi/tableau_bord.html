@@ -4,55 +4,209 @@
 {% block extra_head %}
 <style>
 .commune-card {
-  border-radius: 10px;
-  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
   background: #fff;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
-.commune-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); border-color: #b0c4de; }
-.commune-card.statut-termine    { border-right: 4px solid #198754; }
-.commune-card.statut-en_cours   { border-right: 4px solid #ffc107; }
-.commune-card.statut-contacte   { border-right: 4px solid #0dcaf0; }
-.commune-card.statut-probleme   { border-right: 4px solid #dc3545; }
-.commune-card.statut-en_attente { border-right: 4px solid #adb5bd; }
-.commune-code { font-size: 11px; color: #adb5bd; font-weight: 700; }
-.commune-nom  { font-size: 15px; font-weight: 700; color: #1a3a5c; }
-.commune-meta { font-size: 11px; color: #6c757d; margin-top: 4px; }
-.assigned-badge {
-  background: #e8f0fe; color: #1a5276;
-  border-radius: 20px; font-size: 11px;
-  padding: 2px 10px; font-weight: 600;
-  display: inline-flex; align-items: center; gap: 4px;
+.commune-card:hover {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+  border-color: #b0c4de;
+  transform: translateY(-2px);
 }
-.stat-pill {
-  border-radius: 20px; padding: 6px 14px;
-  font-size: 13px; font-weight: 600;
-  cursor: pointer; border: 2px solid transparent;
-  transition: all 0.15s; text-decoration: none;
+.commune-card.statut-termine    { border-right: 5px solid #198754; }
+.commune-card.statut-en_cours   { border-right: 5px solid #ffc107; }
+.commune-card.statut-contacte   { border-right: 5px solid #0dcaf0; }
+.commune-card.statut-probleme   { border-right: 5px solid #dc3545; }
+.commune-card.statut-en_attente { border-right: 5px solid #adb5bd; }
+
+.commune-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
-.stat-pill.active { border-color: currentColor; }
-.inline-statut select {
-  border: none; background: transparent;
-  font-size: 12px; padding: 2px 6px; cursor: pointer;
-  color: inherit; font-weight: 600; border-radius: 6px;
+.commune-code {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 700;
+  background: #f8f9fa;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
-.inline-statut select:focus { outline: none; box-shadow: none; }
-.claim-btn { font-size: 11px; padding: 2px 8px; border-radius: 12px; }
-.saving-spinner { display: none; }
-.commune-card.saving .saving-spinner { display: inline-block; }
-.remarque-text {
-  font-size: 12px; color: #495057;
-  background: #f8f9fa; border-radius: 6px;
-  padding: 6px 10px; margin-top: 6px;
-  white-space: pre-wrap; display: none;
+.commune-nom {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a3a5c;
+  margin: 4px 0;
 }
-.commune-card.open .remarque-text { display: block; }
-.edit-zone { display: none; margin-top: 8px; }
-.commune-card.editing .edit-zone { display: block; }
-.commune-card.editing .view-zone { display: none; }
-.search-box { max-width: 220px; }
+
+.status-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+}
+
+.tasks-summary {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+.tasks-summary .task-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  margin: 2px 4px 2px 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: white;
+  border: 1px solid #e9ecef;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.action-btn {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.progress-mini {
+  height: 4px;
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  padding: 12px;
+  color: white;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+.stat-card p {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  opacity: 0.9;
+}
+.stat-card .icon {
+  font-size: 32px;
+  opacity: 0.2;
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+}
+
+.filter-section {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.filter-btn {
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.filter-btn.active {
+  border-color: currentColor;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.search-section {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.search-input {
+  max-width: 250px;
+  border-radius: 20px;
+  border: 2px solid #e9ecef;
+  padding: 6px 16px;
+  font-size: 14px;
+}
+.search-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.tasks-modal .modal-dialog {
+  max-width: 800px;
+}
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.task-row:last-child {
+  border-bottom: none;
+}
+.task-status {
+  width: 100px;
+}
+.task-assigned {
+  width: 80px;
+  text-align: center;
+}
+.task-actions {
+  width: 120px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .commune-card {
+    padding: 12px;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .filter-buttons {
+    justify-content: center;
+  }
+}
 </style>
 {% endblock %}
 
@@ -161,11 +315,12 @@
 
 <!-- Grid des communes -->
 <div class="row g-3">
-  {% for c in communes %}
+  {% for item in communes %}
+  {% with c=item.commune task_stats=item.task_stats %}
   <div class="col-xl-3 col-lg-4 col-md-6">
     <div class="commune-card statut-{{ c.statut }}" id="card-{{ c.pk }}" data-pk="{{ c.pk }}">
 
-      <div class="d-flex justify-content-between align-items-start">
+      <div class="commune-header">
         <div>
           <div class="commune-code">{{ c.commune }}</div>
           <div class="commune-nom">{{ c.get_commune_display }}</div>
@@ -178,61 +333,89 @@
         </div>
       </div>
 
-      <!-- View zone -->
-      <div class="view-zone mt-2">
-        <div class="inline-statut">
-          <select class="statut-select badge bg-{{ c.statut_color }} border-0 text-white"
-                  data-pk="{{ c.pk }}">
-            {% for val, label in statuts %}
-            <option value="{{ val }}" {% if c.statut == val %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-        </div>
+      <!-- Status section -->
+      <div class="status-section">
+        <select class="status-badge statut-select bg-{{ c.statut_color }} text-white border-0"
+                data-pk="{{ c.pk }}">
+          {% for val, label in statuts %}
+          <option value="{{ val }}" {% if c.statut == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-        <div class="commune-meta mt-1 d-flex align-items-center gap-2 flex-wrap">
-          {% if c.attribue_a %}
-            <span class="assigned-badge">
-              <i class="bi bi-person-fill" style="font-size:10px;"></i>
-              {{ c.attribue_a.username }}
-            </span>
-            {% if c.attribue_a == request.user or request.user.is_superuser %}
-            <button class="btn btn-outline-secondary claim-btn release-btn" data-pk="{{ c.pk }}">
-              تحرير
-            </button>
-            {% endif %}
-          {% else %}
-            <button class="btn btn-outline-primary claim-btn claim-btn-action" data-pk="{{ c.pk }}">
-              <i class="bi bi-person-plus me-1"></i>أسند لي
-            </button>
+      <!-- Tasks summary -->
+      {% if task_stats.total > 0 %}
+      <div class="tasks-summary">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <small class="text-muted fw-bold">المهام</small>
+          <small class="text-muted">{{ task_stats.termine }}/{{ task_stats.total }}</small>
+        </div>
+        <div class="progress progress-mini bg-light">
+          <div class="progress-bar bg-success" style="width: {% widthratio task_stats.termine task_stats.total 100 %}%"></div>
+        </div>
+        <div class="mt-1">
+          {% if task_stats.en_cours > 0 %}
+          <span class="task-item text-warning">
+            <i class="bi bi-play-circle-fill"></i> {{ task_stats.en_cours }}
+          </span>
+          {% endif %}
+          {% if task_stats.probleme > 0 %}
+          <span class="task-item text-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ task_stats.probleme }}
+          </span>
+          {% endif %}
+          {% if task_stats.en_attente > 0 %}
+          <span class="task-item text-muted">
+            <i class="bi bi-clock"></i> {{ task_stats.en_attente }}
+          </span>
           {% endif %}
         </div>
+      </div>
+      {% endif %}
 
-        {% if c.remarque %}
-        <button class="btn btn-link p-0 mt-1 toggle-remarque" style="font-size:11px; color:#6c757d;">
-          <i class="bi bi-chat-left-text me-1"></i>عرض الملاحظة
+      <!-- Action buttons -->
+      <div class="action-buttons">
+        <button type="button" class="btn btn-sm btn-outline-info action-btn"
+                data-bs-toggle="modal" data-bs-target="#tasksModal"
+                data-commune-id="{{ c.pk }}" data-commune-name="{{ c.get_commune_display }}">
+          <i class="bi bi-list-check"></i> المهام
         </button>
-        <div class="remarque-text">{{ c.remarque }}</div>
-        {% endif %}
 
-        {% if c.modifie_par %}
-        <div class="commune-meta mt-1">
-          <i class="bi bi-clock" style="font-size:10px;"></i>
-          {{ c.modifie_par.username }} — {{ c.modifie_le|date:"d/m H:i" }}
-        </div>
-        {% endif %}
-        {% if c.date_contact %}
-        <div class="commune-meta">
-          <i class="bi bi-calendar3" style="font-size:10px;"></i>
-          تاريخ الاتصال: {{ c.date_contact|date:"d/m/Y" }}
-        </div>
+        {% if c.attribue_a %}
+          <span class="badge bg-light text-dark">
+            <i class="bi bi-person-fill"></i> {{ c.attribue_a.username }}
+          </span>
+          {% if c.attribue_a == request.user or request.user.is_superuser %}
+          <button class="btn btn-sm btn-outline-secondary action-btn release-btn" data-pk="{{ c.pk }}">
+            تحرير
+          </button>
+          {% endif %}
+        {% else %}
+          <button class="btn btn-sm btn-outline-primary action-btn claim-btn-action" data-pk="{{ c.pk }}">
+            <i class="bi bi-person-plus"></i> أسند لي
+          </button>
         {% endif %}
       </div>
 
+      <!-- Additional info -->
+      {% if c.remarque %}
+      <button class="btn btn-link p-0 mt-2 toggle-remarque" style="font-size:11px; color:#6c757d;">
+        <i class="bi bi-chat-left-text me-1"></i> ملاحظة
+      </button>
+      <div class="remarque-text">{{ c.remarque }}</div>
+      {% endif %}
+
+      {% if c.modifie_par %}
+      <div class="text-muted mt-1" style="font-size:10px;">
+        <i class="bi bi-clock"></i> {{ c.modifie_par.username }} — {{ c.modifie_le|date:"d/m H:i" }}
+      </div>
+      {% endif %}
+
       <!-- Edit zone -->
-      <div class="edit-zone">
+      <div class="edit-zone" style="display: none; margin-top: 12px;">
         <div class="mb-2">
           <label style="font-size:11px; font-weight:600; color:#6c757d;">الملاحظة</label>
-          <textarea class="form-control form-control-sm remarque-input" rows="3"
+          <textarea class="form-control form-control-sm remarque-input" rows="2"
                     placeholder="أضف ملاحظة...">{{ c.remarque }}</textarea>
         </div>
         <div class="mb-2">
@@ -242,7 +425,7 @@
         </div>
         <div class="d-flex gap-2">
           <button class="btn btn-sm btn-primary save-edit-btn" data-pk="{{ c.pk }}">
-            <i class="bi bi-check-lg me-1"></i>حفظ
+            <i class="bi bi-check-lg"></i> حفظ
           </button>
           <button class="btn btn-sm btn-outline-secondary cancel-edit-btn">إلغاء</button>
         </div>
@@ -250,6 +433,7 @@
 
     </div>
   </div>
+  {% endwith %}
   {% empty %}
   <div class="col-12 text-center text-muted py-5">
     <i class="bi bi-funnel fs-1 d-block mb-2"></i>
@@ -257,11 +441,30 @@
   </div>
   {% endfor %}
 </div>
+
+<!-- Tasks Modal -->
+<div class="modal fade tasks-modal" id="tasksModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-list-check me-2"></i>
+          متابعة مهام بلدية <span id="modalCommuneName"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="tasksModalBody">
+        <!-- Tasks will be loaded here -->
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 const CSRF = '{{ csrf_token }}';
+const statuts = {{ statuts_json|safe }};
 
 async function apiPost(url, data) {
   const r = await fetch(url, {
@@ -373,5 +576,181 @@ document.querySelectorAll('.release-btn').forEach(btn => {
 
 // Auto-refresh 30s
 setTimeout(() => location.reload(), 30000);
+
+// Tasks modal
+document.querySelectorAll('.action-btn[data-bs-target="#tasksModal"]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const communeId = this.dataset.communeId;
+    const communeName = this.dataset.communeName;
+    document.getElementById('modalCommuneName').textContent = communeName;
+    const modalBody = document.getElementById('tasksModalBody');
+    modalBody.innerHTML = '<div class="text-center py-5"><i class="bi bi-hourglass-split fs-1 text-muted"></i><div class="mt-3">جاري تحميل المهام...</div></div>';
+    fetch(`/suivi/${communeId}/taches-api/`)
+      .then(r => r.json())
+      .then(data => {
+        modalBody.innerHTML = '';
+        if (data.tasks.length === 0) {
+          modalBody.innerHTML = '<div class="text-center py-5"><i class="bi bi-check-circle fs-1 text-success"></i><div class="mt-3">لا توجد مهام</div></div>';
+        } else {
+          data.tasks.forEach(task => {
+            const div = document.createElement('div');
+            div.className = 'task-row d-flex align-items-center py-2';
+            div.setAttribute('data-task-id', task.id);
+
+            // إنشاء قائمة الحالات
+            let statusOptions = '';
+            statuts.forEach(([value, label]) => {
+              const selected = task.statut_code === value ? 'selected' : '';
+              statusOptions += `<option value="${value}" ${selected}>${label}</option>`;
+            });
+
+            div.innerHTML = `
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center">
+                  <div class="task-status" style="width: 120px;">
+                    <select class="form-select form-select-sm status-select" data-task-id="${task.id}" style="font-size: 11px;">
+                      ${statusOptions}
+                    </select>
+                  </div>
+                  <div class="task-assigned" style="width: 80px; text-align: center;">
+                    ${task.assigned ? `<i class="bi bi-person-fill"></i> ${task.assigned}` : '<i class="bi bi-person-dash"></i>'}
+                  </div>
+                </div>
+                <div class="fw-bold" style="font-size: 14px;">${task.titre}</div>
+                <div class="text-muted" style="font-size: 12px;">
+                  <i class="bi bi-calendar3"></i> ${task.date_debut} - ${task.date_fin}
+                </div>
+                ${task.remarque ? `<div class="text-muted small mt-1">${task.remarque}</div>` : ''}
+              </div>
+              <div class="task-actions" style="width: 120px; text-align: center;">
+                <button class="btn btn-sm btn-outline-primary me-1 view-btn" data-task-id="${task.id}" title="عرض التفاصيل">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary me-1 edit-btn" data-task-id="${task.id}" title="تعديل">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger delete-btn" data-task-id="${task.id}" title="حذف">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            `;
+            modalBody.appendChild(div);
+          });
+        }
+      })
+      .catch(err => {
+        console.error('خطأ في تحميل المهام:', err);
+        modalBody.innerHTML = '<div class="alert alert-danger"><strong>خطأ:</strong> لم يتم تحميل المهام. تحقق من الكنسول للمزيد من التفاصيل.</div>';
+      });
+  });
+});
+
+// Task actions in modal
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.view-btn, .edit-btn, .delete-btn');
+  if (!btn) return;
+
+  const taskId = btn.dataset.taskId;
+  const communeId = document.querySelector('.action-btn[data-bs-target="#tasksModal"]').dataset.communeId;
+
+  if (btn.classList.contains('view-btn')) {
+    // عرض التفاصيل - يمكن أن يفتح modal آخر أو يوجه إلى صفحة التفاصيل
+    window.location.href = `/suivi/${communeId}/taches/`;
+  } else if (btn.classList.contains('edit-btn')) {
+    // تعديل - يمكن أن يفتح modal للتعديل أو يوجه إلى صفحة التعديل
+    window.location.href = `/suivi/${communeId}/taches/`;
+  } else if (btn.classList.contains('delete-btn')) {
+    // حذف
+    if (confirm('هل أنت متأكد من حذف هذه المهمة؟')) {
+      apiPost(`/suivi/${communeId}/taches/${taskId}/delete/`, {})
+        .then(res => {
+          if (res.ok) {
+            // إعادة تحميل المهام
+            const modalBody = document.getElementById('tasksModalBody');
+            modalBody.innerHTML = '<div class="text-center py-5"><i class="bi bi-hourglass-split fs-1 text-muted"></i><div class="mt-3">جاري تحديث المهام...</div></div>';
+            fetch(`/suivi/${communeId}/taches-api/`)
+              .then(r => r.json())
+              .then(data => {
+                modalBody.innerHTML = '';
+                if (data.tasks.length === 0) {
+                  modalBody.innerHTML = '<div class="text-center py-5"><i class="bi bi-check-circle fs-1 text-success"></i><div class="mt-3">لا توجد مهام</div></div>';
+                } else {
+                  data.tasks.forEach(task => {
+                    const div = document.createElement('div');
+                    div.className = 'task-row d-flex align-items-center py-2';
+                    div.setAttribute('data-task-id', task.id);
+
+                    let statusOptions = '';
+                    statuts.forEach(([value, label]) => {
+                      const selected = task.statut_code === value ? 'selected' : '';
+                      statusOptions += `<option value="${value}" ${selected}>${label}</option>`;
+                    });
+
+                    div.innerHTML = `
+                      <div class="flex-grow-1">
+                        <div class="d-flex align-items-center">
+                          <div class="task-status" style="width: 120px;">
+                            <select class="form-select form-select-sm status-select" data-task-id="${task.id}" style="font-size: 11px;">
+                              ${statusOptions}
+                            </select>
+                          </div>
+                          <div class="task-assigned" style="width: 80px; text-align: center;">
+                            ${task.assigned ? `<i class="bi bi-person-fill"></i> ${task.assigned}` : '<i class="bi bi-person-dash"></i>'}
+                          </div>
+                        </div>
+                        <div class="fw-bold" style="font-size: 14px;">${task.titre}</div>
+                        <div class="text-muted" style="font-size: 12px;">
+                          <i class="bi bi-calendar3"></i> ${task.date_debut} - ${task.date_fin}
+                        </div>
+                        ${task.remarque ? `<div class="text-muted small mt-1">${task.remarque}</div>` : ''}
+                      </div>
+                      <div class="task-actions" style="width: 120px; text-align: center;">
+                        <button class="btn btn-sm btn-outline-primary me-1 view-btn" data-task-id="${task.id}" title="عرض التفاصيل">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary me-1 edit-btn" data-task-id="${task.id}" title="تعديل">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-btn" data-task-id="${task.id}" title="حذف">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    `;
+                    modalBody.appendChild(div);
+                  });
+                }
+              });
+          } else {
+            alert(res.msg || 'خطأ في الحذف');
+          }
+        });
+    }
+  }
+});
+
+// Task status change in modal
+document.addEventListener('change', function(e) {
+  if (!e.target.classList.contains('status-select')) return;
+
+  const taskId = e.target.dataset.taskId;
+  const communeId = document.querySelector('.action-btn[data-bs-target="#tasksModal"]').dataset.communeId;
+  const newStatus = e.target.value;
+
+  apiPost(`/suivi/${communeId}/taches/${taskId}/update/`, {statut: newStatus})
+    .then(res => {
+      if (res.ok) {
+        // تحديث التواريخ في الواجهة
+        const taskRow = e.target.closest('.task-row');
+        const dateElements = taskRow.querySelectorAll('.text-muted');
+        if (dateElements.length > 0) {
+          dateElements[0].innerHTML = `<i class="bi bi-calendar3"></i> ${res.date_debut} - ${res.date_fin}`;
+        }
+      } else {
+        alert(res.msg || 'خطأ في التحديث');
+        // إعادة تحميل الصفحة لإعادة تعيين القيمة
+        location.reload();
+      }
+    });
+});
 </script>
 {% endblock %}

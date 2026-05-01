@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تقرير الجرد - إدارة المخزون{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-clipboard-list text-primary me-2"></i>
+                    تقرير الجرد
+                </h1>
+                <div>
+                    <button onclick="window.print()" class="btn btn-outline-secondary">
+                        <i class="fas fa-print me-1"></i>طباعة
+                    </button>
+                    <a href="{% url 'inventory:dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-tachometer-alt me-1"></i>لوحة التحكم
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إحصائيات عامة -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-left-primary shadow">
+                <div class="card-body p-3">
+                    <div class="text-xs text-primary font-weight-bold mb-1">إجمالي المنتجات</div>
+                    <div class="h4 mb-0 text-primary">{{ stats_generales.total_produits }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-success shadow">
+                <div class="card-body p-3">
+                    <div class="text-xs text-success font-weight-bold mb-1">القيمة الإجمالية</div>
+                    <div class="h4 mb-0 text-success">{{ stats_generales.valeur_totale|floatformat:2 }} دج</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-warning shadow">
+                <div class="card-body p-3">
+                    <div class="text-xs text-warning font-weight-bold mb-1">منتجات منخفضة</div>
+                    <div class="h4 mb-0 text-warning">{{ stats_generales.produits_faibles }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-left-danger shadow">
+                <div class="card-body p-3">
+                    <div class="text-xs text-danger font-weight-bold mb-1">منتجات نفدت</div>
+                    <div class="h4 mb-0 text-danger">{{ stats_generales.produits_epuises }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول الجرد -->
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-table me-1"></i>
+                تفاصيل الجرد
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="rapportTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>رمز المنتج</th>
+                            <th>اسم المنتج</th>
+                            <th>الفئة</th>
+                            <th>المورد</th>
+                            <th>عدد الدفعات</th>
+                            <th>الكمية الإجمالية</th>
+                            <th>القيمة الإجمالية</th>
+                            <th>أقدم تاريخ صلاحية</th>
+                            <th>أحدث تاريخ صلاحية</th>
+                            <th>حالة المخزون</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in rapport_data %}
+                        <tr>
+                            <td><code>{{ item.produit.code_produit }}</code></td>
+                            <td>
+                                <strong>
+                                    <a href="{% url 'inventory:produit_detail' item.produit.pk %}" class="text-decoration-none">
+                                        {{ item.produit.nom }}
+                                    </a>
+                                </strong>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: {{ item.produit.categorie.couleur }};">
+                                    {{ item.produit.categorie.nom }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if item.produit.fournisseur %}
+                                    {{ item.produit.fournisseur.nom }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if item.lots_info.total_lots %}
+                                    <span class="badge bg-info">{{ item.lots_info.total_lots }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if item.lots_info.quantite_totale %}
+                                    <strong>{{ item.lots_info.quantite_totale|floatformat:2 }}</strong>
+                                    <small class="text-muted">{{ item.produit.unite_mesure }}</small>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if item.lots_info.valeur_totale %}
+                                    <strong>{{ item.lots_info.valeur_totale|floatformat:2 }}</strong>
+                                    <small class="text-muted">دج</small>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.lots_info.plus_ancienne_expiration %}
+                                    {{ item.lots_info.plus_ancienne_expiration|date:"d/m/Y" }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.lots_info.plus_recente_expiration %}
+                                    {{ item.lots_info.plus_recente_expiration|date:"d/m/Y" }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.produit.statut_stock == 'epuise' %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1"></i>{{ item.produit.statut_stock_display }}
+                                    </span>
+                                {% elif item.produit.statut_stock == 'faible' %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ item.produit.statut_stock_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>{{ item.produit.statut_stock_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- معلومات إضافية -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-info-circle me-1"></i>
+                        ملاحظات مهمة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-calendar-alt text-primary me-2"></i>
+                            تاريخ التقرير: {{ "now"|date:"l, d F Y - H:i" }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-user text-primary me-2"></i>
+                            تم إنشاؤه بواسطة: {{ user.get_full_name|default:user.username }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-database text-primary me-2"></i>
+                            البيانات مأخوذة من قاعدة البيانات الحالية
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        نقاط مهمة للمتابعة
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h6>منتجات تحتاج متابعة:</h6>
+                        <ul>
+                            <li>المنتجات المنخفضة المخزون: {{ stats_generales.produits_faibles }} منتج</li>
+                            <li>المنتجات المنفذة: {{ stats_generales.produits_epuises }} منتج</li>
+                            <li>المنتجات ذات الصلاحية القصيرة</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-primary { border-left: 0.25rem solid #4e73df !important; }
+.border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+.border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+.border-left-danger { border-left: 0.25rem solid #e74a3b !important; }
+
+.shadow { box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important; }
+.card { border: none; border-radius: 0.35rem; }
+
+.table-hover tbody tr:hover { background-color: rgba(0,0,0,.075); }
+
+@media print {
+    .btn, .card-header, .d-flex {
+        display: none !important;
+    }
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+    .table-responsive {
+        overflow-x: visible !important;
+    }
+    .table {
+        font-size: 12px;
+    }
+}
+</style>
+
+<script>
+// تهيئة DataTable للجدول
+$(document).ready(function() {
+    $('#rapportTable').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Arabic.json"
+        },
+        "pageLength": 25,
+        "order": [[ 1, "asc" ]],
+        "columnDefs": [
+            { "orderable": false, "targets": [9] }
+        ]
+    });
+});
+</script>
+{% endblock %}
